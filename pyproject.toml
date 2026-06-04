@@ -40,6 +40,19 @@ python_version = "3.14"
 strict = true
 files = ["src"]
 
+# bragi ships without a py.typed marker. Silence the import-untyped noise
+# so mypy stays useful on our code.
+[[tool.mypy.overrides]]
+module = ["bragi.*", "jinja2.*"]
+ignore_missing_imports = true
+
+# pluggy's @hookimpl decorator doesn't preserve the decorated function's
+# type signature, so mypy fires "untyped-decorator" in strict mode.
+# The hook contract is tested behaviourally; suppressing here is intentional.
+[[tool.mypy.overrides]]
+module = "bragi_theme_zelda.plugin"
+disable_error_code = ["untyped-decorator"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v"
