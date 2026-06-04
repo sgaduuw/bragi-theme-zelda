@@ -40,10 +40,10 @@ python_version = "3.14"
 strict = true
 files = ["src"]
 
-# bragi ships without a py.typed marker. Silence the import-untyped noise
-# so mypy stays useful on our code.
+# bragi does not ship py.typed (it's deploy-as-container, not a PyPI lib).
+# Silence mypy's import-untyped error for the bragi imports in this package.
 [[tool.mypy.overrides]]
-module = ["bragi.*", "jinja2.*"]
+module = "bragi.*"
 ignore_missing_imports = true
 
 # pluggy's @hookimpl decorator doesn't preserve the decorated function's
