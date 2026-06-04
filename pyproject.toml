@@ -1,0 +1,48 @@
+[tool.poetry]
+name = "bragi-theme-zelda"
+version = "0.1.0"
+description = "Link's-Awakening-flavoured theme for the bragi CMS, used by zelda.eelcowesemann.nl"
+authors = ["Eelco Wesemann <claude-ai@init1.nl>"]
+license = "MIT"
+readme = "README.md"
+packages = [{ include = "bragi_theme_zelda", from = "src" }]
+include = [
+    "src/bragi_theme_zelda/templates/**/*",
+    "src/bragi_theme_zelda/static/**/*",
+]
+
+[tool.poetry.dependencies]
+python = "^3.14"
+# Bragi is the host. Git dep because bragi isn't on PyPI (the bragi name there
+# is held by an unrelated project per bragi's CONTEXT.md).
+bragi = { git = "https://github.com/sgaduuw/bragi.git", tag = "v1.26.0" }
+jinja2 = "^3.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.6"
+mypy = "^1.11"
+pytest = "^8.0"
+
+[tool.poetry.plugins."bragi.plugins"]
+theme_zelda = "bragi_theme_zelda.plugin"
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "RUF"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+files = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

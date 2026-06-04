@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+
+# Test / type-check caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Portfolio convention: Claude tooling artefacts are personal/cross-machine,
+# rsync transport, not git. Root stub is ignored too so it doesn't accidentally
+# land on a PR.
+/_claude/
+/CLAUDE.md
+/.superpowers/
