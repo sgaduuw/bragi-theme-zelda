@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
+from typing import TYPE_CHECKING
+
 import pytest
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from flask import Flask
 
 
 @pytest.fixture
-def bragi_app_with_theme(tmp_path):
+def bragi_app_with_theme(tmp_path: Path) -> Generator[Flask, None, None]:
     """A minimal bragi delivery app with this theme registered.
 
     Used by tests/contrib/ and tests/integration/. Importing bragi inside the
@@ -23,4 +31,6 @@ def bragi_app_with_theme(tmp_path):
             "SECRET_KEY": "test-only",
         }
     )
-    return app
+    yield app
+    # Teardown hook: future tasks add explicit close/cleanup here.
+    # tmp_path handles the SQLite file itself; nothing else to do today.
