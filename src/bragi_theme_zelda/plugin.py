@@ -1,8 +1,6 @@
 """bragi_theme_zelda plugin hookimpls.
 
-Registers the Zelda (Link's Awakening) theme via `register_theme`. v0.1.0
-ships exactly one hookimpl from this module; `resolve_home` lands in Task 12
-when the pause-menu homepage is wired up.
+Registers the Zelda (Link's Awakening) theme via `register_theme`.
 """
 
 from __future__ import annotations

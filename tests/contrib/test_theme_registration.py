@@ -42,5 +42,5 @@ def test_theme_template_loader_finds_base_html(pm: pluggy.PluginManager) -> None
 
 def test_theme_static_dir_exists(pm: pluggy.PluginManager) -> None:
     spec = pm.hook.register_theme()[0]
-    assert spec.static_dir.exists()
-    assert spec.static_dir.is_dir()
+    assert spec.static_dir.exists(), f"expected {spec.static_dir!r} to exist"
+    assert spec.static_dir.is_dir(), f"expected {spec.static_dir!r} to be a directory"
