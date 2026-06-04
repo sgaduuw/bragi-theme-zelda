@@ -16,6 +16,12 @@ attribute. The `plugin.py` wrapper `_section_helper` resolves the chain
 via DB queries on `parent_id` for that case. This module's
 `detect_section` stays a pure-Python helper for unit-testable cases
 where the caller has a `.parent`-having object (e.g. NavNode, FakePage).
+
+This separation is deliberate: the SQL-walk lives in plugin.py where it
+can be deferred until app boot completes, while detect_section here stays
+unit-testable without touching a DB. Don't inline this into the wrapper,
+losing the pure-function form would lose test coverage of the algorithm
+independent of the SQL plumbing.
 """
 
 from __future__ import annotations
@@ -43,8 +49,10 @@ def detect_section(
     mapped slug + its human label; otherwise returns ("", "").
 
     Page objects only need `.slug` (str) and `.parent` (None or another
-    page-shaped object). Bragi's SQLAlchemy Page model exposes both;
-    tests use a dataclass duck-type.
+    page-shaped object). Bragi's real Page rows lack `.parent`; production
+    use goes through `plugin._section_helper` which walks `parent_id` via
+    SQL. This function stays the unit-testable reference; tests use a
+    dataclass duck-type.
     """
     if page is None:
         return ("", "")

@@ -56,8 +56,12 @@ def _section_helper(page: Any) -> tuple[str, str]:
         # Top-level page — its own slug is the root.
         return _resolve_root(root_slug)
 
+    # DB unavailability is fatal here: propagate so Flask returns 500
+    # rather than silently mislabelling the section.
     with SessionLocal() as db:
-        # Cap the walk at 10 hops as a guard against pathological cycles.
+        # 10 is well above any realistic walkthrough depth (~5-7 levels:
+        # section -> game -> dungeon -> area -> room -> collectible) and
+        # guards against infinite loops on malformed parent_id chains.
         for _ in range(10):
             ancestor = db.execute(
                 select(_Page).where(_Page.id == current_parent_id)
@@ -72,6 +76,8 @@ def _section_helper(page: Any) -> tuple[str, str]:
     return _resolve_root(root_slug)
 
 
+# Two call sites in _section_helper: the top-level-page early return and
+# the post-walk exit. Factoring keeps both branches identical.
 def _resolve_root(root_slug: str) -> tuple[str, str]:
     """Map a section-root slug to (section_code, human_label)."""
     section = _SECTION_SLUG_MAP.get(root_slug, "")
