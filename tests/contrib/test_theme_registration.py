@@ -44,3 +44,19 @@ def test_theme_static_dir_exists(pm: pluggy.PluginManager) -> None:
     spec = pm.hook.register_theme()[0]
     assert spec.static_dir.exists(), f"expected {spec.static_dir!r} to exist"
     assert spec.static_dir.is_dir(), f"expected {spec.static_dir!r} to be a directory"
+
+
+def test_section_helper_registered_as_template_global(
+    pm: pluggy.PluginManager,
+) -> None:
+    # bragi's register_template_globals hookspec mutates env in place
+    # (signature: (env: jinja2.Environment) -> None), so we pass a real
+    # Jinja Environment and assert the global was injected.
+    import jinja2
+
+    env = jinja2.Environment()
+    pm.hook.register_template_globals(env=env)
+    assert "section_helper" in env.globals
+    helper = env.globals["section_helper"]
+    # Sanity: calling on None returns ('', '').
+    assert helper(None) == ("", "")

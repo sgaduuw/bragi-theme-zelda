@@ -1,12 +1,62 @@
-{# Minimal v0.1.0 scaffold. Replaced by the real shell in Task 5. #}
+{% set _section = section_helper(page) if page is defined and section_helper is defined else ('', '') %}
 <!doctype html>
-<html lang="{{ site.locale if site else 'en' }}">
+<html lang="{{ site.locale if site else 'en' }}" data-section="{{ _section[0] }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ site.title if site else 'bragi-theme-zelda' }}{% endblock %}</title>
+  {% block meta %}
+    {% if meta_description %}<meta name="description" content="{{ meta_description }}">{% endif %}
+    {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+    {% if noindex %}<meta name="robots" content="noindex">{% endif %}
+  {% endblock %}
+  {% if site %}<link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="/feed.xml">{% endif %}
+  {% if webmention_endpoint_url is defined and webmention_endpoint_url() %}<link rel="webmention" href="{{ webmention_endpoint_url() }}">{% endif %}
+  {% if pygments_css_url is defined %}<link rel="stylesheet" href="{{ pygments_css_url }}">{% endif %}
+  <link rel="stylesheet" href="/theme/zelda/static/css/theme.css">
+  {% block social_meta %}{% endblock %}
+  {% block jsonld %}{% endblock %}
+  <meta name="color-scheme" content="light dark">
+  {# Tiny inline script to apply localStorage theme preference before paint,
+     avoiding FOUC. Skipped under no-JS (no impact: the auto behaviour is fine). #}
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('zelda-theme');
+        if (t === 'la-green' || t === 'gb-pocket') {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
-  <main>{% block content %}{% endblock %}</main>
+  {% if site %}
+  <header class="site">
+    <span class="brand-tile" aria-hidden="true"></span>
+    <a class="brand" href="/">{{ site.title }}</a>
+    {% if _section[1] %}<span class="section-pill">{{ _section[1] }}</span>{% endif %}
+  </header>
+  {% endif %}
+  <div class="frame">
+    <aside class="map-sidebar">
+      {% include "delivery/_site_nav.html" %}
+    </aside>
+    <main>
+      {% block breadcrumbs %}{% endblock %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% if site %}
+  <footer class="site">
+    <button class="rupee-counter" type="button" aria-label="Rupees collected">
+      &#x1f48e; <span class="count">&mdash;</span> rupees
+    </button>
+    <button class="theme-toggle" type="button" aria-label="Switch theme">
+      [ LCD / POCKET ]
+    </button>
+    <span class="copy">&copy; {{ site.title }}</span>
+  </footer>
+  {% endif %}
 </body>
 </html>

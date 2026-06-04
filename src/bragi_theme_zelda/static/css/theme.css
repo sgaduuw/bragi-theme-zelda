@@ -125,3 +125,98 @@ h1 { font-size: 1.25rem; }
 h2 { font-size: 1.05rem; }
 h3 { font-size: 0.85rem; }
 a { color: var(--accent-link); text-underline-offset: 3px; }
+
+/* ===== Layout chrome ===== */
+
+body {
+  background: var(--gb-3);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+}
+
+header.site {
+  background: var(--gb-1);
+  color: var(--gb-3);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  border-bottom: 2px solid var(--gb-0);
+}
+
+header.site .brand-tile {
+  width: 18px;
+  height: 18px;
+  background: var(--gb-3);
+  border: 2px solid var(--gb-0);
+}
+
+header.site a.brand {
+  color: inherit;
+  text-decoration: none;
+  font-family: var(--font-pixel);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+header.site .section-pill {
+  margin-left: auto;
+  background: var(--gb-3);
+  color: var(--gb-0);
+  font-family: var(--font-pixel);
+  font-size: 0.55rem;
+  padding: 0.2rem 0.45rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.frame {
+  display: grid;
+  grid-template-columns: 14rem 1fr;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  max-width: 80rem;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .frame { grid-template-columns: 1fr; }
+  .map-sidebar { order: 2; }  /* sidebar below content on mobile */
+}
+
+main { min-width: 0; /* allow content to shrink in the grid */ }
+
+footer.site {
+  background: var(--gb-1);
+  color: var(--gb-3);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  font-family: var(--font-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.05em;
+  border-top: 2px solid var(--gb-0);
+}
+
+footer.site .copy { margin-left: auto; }
+
+footer.site .rupee-counter,
+footer.site .theme-toggle {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+
+footer.site .theme-toggle:hover,
+footer.site .rupee-counter:hover {
+  background: var(--gb-0);
+  color: var(--gb-3);
+}

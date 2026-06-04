@@ -1,0 +1,60 @@
+"""Section detection: walks a page's ancestors to find the section root.
+
+The MAP sidebar, OoT chrome flip, and breadcrumbs all need to know which
+top-level "section" the current page belongs to (Link's Awakening or
+Ocarina of Time). This module owns that walk so the templates can stay
+thin and the logic stays unit-testable.
+
+Why not in a Jinja macro: the walk + the slug-to-section lookup table is
+easier to test in Python than in Jinja, and base.html stays declarative.
+
+The page duck-type contract: page objects only need `.slug` (str) and
+`.parent` (None or another page-shaped object). Bragi's SQLAlchemy Page
+model exposes `.slug` directly, but its parent link is a `parent_id` FK
+integer, not a resolved object. The delivery app's nav helpers resolve the
+full page tree; callers of `detect_section` against real Page rows must
+pass a resolved-parent tree (e.g. via bragi.contrib.nav's build_nav_tree
+output), or use a duck-typed wrapper. Unit tests use a dataclass
+duck-type that satisfies the `.parent` contract directly.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+# (slug, human label) — kept in sync with the section root pages in the bragi
+# database. New top-level Zelda sections (e.g. "Twilight Princess") get one
+# new entry here plus new --gb-* / --accent-* tokens in theme.css.
+DEFAULT_SECTION_LABELS: dict[str, str] = {
+    "la": "Link's Awakening",
+    "oot": "Ocarina of Time",
+}
+
+
+def detect_section(
+    page: Any | None,
+    section_map: dict[str, str],
+    labels: dict[str, str] | None = None,
+) -> tuple[str, str]:
+    """Return (section_slug, section_label) for `page`.
+
+    Walks the page's `.parent` chain until a parent is `None` (top-level
+    page). If the top-level page's slug is in `section_map`, returns the
+    mapped slug + its human label; otherwise returns ("", "").
+
+    Page objects only need `.slug` (str) and `.parent` (None or another
+    page-shaped object). Bragi's SQLAlchemy Page model exposes both;
+    tests use a dataclass duck-type.
+    """
+    if page is None:
+        return ("", "")
+
+    labels = labels if labels is not None else DEFAULT_SECTION_LABELS
+
+    current = page
+    while current.parent is not None:
+        current = current.parent
+
+    section = section_map.get(current.slug, "")
+    label = labels.get(section, "")
+    return (section, label)
