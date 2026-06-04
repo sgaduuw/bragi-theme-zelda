@@ -28,7 +28,8 @@ theme_zelda = "bragi_theme_zelda.plugin"
 
 [tool.ruff]
 line-length = 88
-target-version = "py314"
+# ruff 0.6.x tops out at py313; bump when upgrading ruff past 0.7.
+target-version = "py313"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
