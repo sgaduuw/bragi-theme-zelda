@@ -220,3 +220,72 @@ footer.site .rupee-counter:hover {
   background: var(--gb-0);
   color: var(--gb-3);
 }
+
+/* ===== MAP sidebar ===== */
+
+.map-sidebar {
+  position: sticky;
+  top: var(--space-md);
+  align-self: start;
+}
+
+.map-panel {
+  background: var(--gb-2);
+  border: 2px solid var(--gb-0);
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 0.85rem;
+}
+
+.map-panel .map-label {
+  background: var(--gb-1);
+  color: var(--gb-3);
+  font-family: var(--font-pixel);
+  font-size: 0.55rem;
+  letter-spacing: 0.05em;
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 2px solid var(--gb-0);
+}
+
+.map-tree, .map-sub {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.map-tree { line-height: 1.7; }
+
+.map-item { position: relative; padding-left: 1rem; }
+
+.map-item .cursor {
+  position: absolute;
+  left: 0;
+  color: var(--gb-0);
+  font-family: var(--font-pixel);
+  font-size: 0.6rem;
+}
+
+.map-item.is-current > .site-nav__link {
+  font-weight: 600;
+  color: var(--gb-0);
+}
+
+.map-tree a,
+.map-sub a {
+  color: var(--gb-0);
+  text-decoration: none;
+}
+.map-tree a:hover,
+.map-sub a:hover { text-decoration: underline; }
+
+.map-sub {
+  margin-top: var(--space-xs);
+  padding-left: var(--space-md);
+  font-size: 0.78rem;
+}
+
+.map-sub-item::before {
+  content: "·";
+  margin-right: var(--space-xs);
+  color: var(--gb-1);
+}
