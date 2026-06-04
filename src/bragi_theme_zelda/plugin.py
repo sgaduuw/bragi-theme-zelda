@@ -13,7 +13,7 @@ from typing import Any
 import jinja2
 from bragi.api import ThemeSpec, hookimpl
 
-from bragi_theme_zelda.section import DEFAULT_SECTION_LABELS, detect_section
+from bragi_theme_zelda.section import DEFAULT_SECTION_LABELS
 
 # Resolve the package's static/ directory at import time so the path is
 # stable even when the package is installed as a zip-imported wheel.
@@ -29,8 +29,54 @@ _SECTION_SLUG_MAP: dict[str, str] = {
 
 
 def _section_helper(page: Any) -> tuple[str, str]:
-    """Wrapper exposed to Jinja as `section_helper(page)` -> (slug, label)."""
-    return detect_section(page, _SECTION_SLUG_MAP, DEFAULT_SECTION_LABELS)
+    """Wrapper exposed to Jinja as `section_helper(page)` -> (slug, label).
+
+    Bragi's Page model exposes `parent_id` (FK int) but no `.parent`
+    relationship attribute, so we walk the chain by issuing per-step
+    queries against the integer FK instead of relying on
+    `detect_section`'s `.parent`-attribute walk.
+
+    Yields the section slug + label for whichever top-level page sits at
+    the root of the current page's ancestor chain, looked up against
+    `_SECTION_SLUG_MAP`. Returns ("", "") when the page is None or its
+    root slug isn't a known section.
+    """
+    if page is None:
+        return ("", "")
+
+    # Deferred imports: this module loads at app boot when the bragi DB
+    # may not yet be connectable; deferring keeps register_theme cheap.
+    from bragi.core.db import SessionLocal
+    from bragi.core.models.page import Page as _Page
+    from sqlalchemy import select
+
+    root_slug: str = page.slug
+    current_parent_id: int | None = page.parent_id
+    if current_parent_id is None:
+        # Top-level page — its own slug is the root.
+        return _resolve_root(root_slug)
+
+    with SessionLocal() as db:
+        # Cap the walk at 10 hops as a guard against pathological cycles.
+        for _ in range(10):
+            ancestor = db.execute(
+                select(_Page).where(_Page.id == current_parent_id)
+            ).scalar_one_or_none()
+            if ancestor is None:
+                break
+            root_slug = ancestor.slug
+            if ancestor.parent_id is None:
+                break
+            current_parent_id = ancestor.parent_id
+
+    return _resolve_root(root_slug)
+
+
+def _resolve_root(root_slug: str) -> tuple[str, str]:
+    """Map a section-root slug to (section_code, human_label)."""
+    section = _SECTION_SLUG_MAP.get(root_slug, "")
+    label = DEFAULT_SECTION_LABELS.get(section, "")
+    return (section, label)
 
 
 @hookimpl

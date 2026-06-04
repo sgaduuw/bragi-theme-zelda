@@ -9,13 +9,13 @@ Why not in a Jinja macro: the walk + the slug-to-section lookup table is
 easier to test in Python than in Jinja, and base.html stays declarative.
 
 The page duck-type contract: page objects only need `.slug` (str) and
-`.parent` (None or another page-shaped object). Bragi's SQLAlchemy Page
-model exposes `.slug` directly, but its parent link is a `parent_id` FK
-integer, not a resolved object. The delivery app's nav helpers resolve the
-full page tree; callers of `detect_section` against real Page rows must
-pass a resolved-parent tree (e.g. via bragi.contrib.nav's build_nav_tree
-output), or use a duck-typed wrapper. Unit tests use a dataclass
-duck-type that satisfies the `.parent` contract directly.
+`.parent` (None or another page-shaped object).
+
+Bragi's Page model has `parent_id` (FK int) but no `.parent` relationship
+attribute. The `plugin.py` wrapper `_section_helper` resolves the chain
+via DB queries on `parent_id` for that case. This module's
+`detect_section` stays a pure-Python helper for unit-testable cases
+where the caller has a `.parent`-having object (e.g. NavNode, FakePage).
 """
 
 from __future__ import annotations
