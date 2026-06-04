@@ -1,0 +1,127 @@
+/* bragi-theme-zelda v0.1.0
+ *
+ * The complete visual system lives in this one file. Token-driven; section
+ * differentiation and light/dark flip the tokens, not the rules. See
+ * _claude/specs/2026-06-04-bragi-theme-zelda-design.md for the why.
+ */
+
+/* ===== Light / Link's Awakening (defaults) ===== */
+:root {
+  color-scheme: light;
+  --gb-0: #0f380f;
+  --gb-1: #306230;
+  --gb-2: #8bac0f;
+  --gb-3: #9bbc0f;
+  --accent-link: #1a6b1a;
+  --accent-tip-fg: #5a3a00;
+  --accent-tip-bg: #fff3b0;
+  --accent-tip-rule: #c8a02c;
+  --accent-warn: #a8201a;
+  --accent-info: #3a6ba5;
+
+  --font-pixel: "Press Start 2P", monospace;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+}
+
+/* ===== Section differentiation: Ocarina of Time ===== */
+[data-section="oot"] {
+  --gb-0: #1a2438;
+  --gb-1: #2c3a52;
+  --gb-2: #9da7c4;
+  --gb-3: #c5cbe0;
+  --accent-link: #4a5fa5;
+  --accent-tip-bg: #f5ebbb;
+  --accent-tip-rule: #d4b340;
+}
+
+/* ===== Dark / GB Pocket greyscale ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --gb-0: #0a0a0a;
+    --gb-1: #3a3a3a;
+    --gb-2: #8a8a8a;
+    --gb-3: #c0c0c0;
+    --accent-link: #a8a8c8;
+    --accent-tip-fg: #e0c060;
+    --accent-tip-bg: #403820;
+    --accent-tip-rule: #e0c060;
+    --accent-warn: #d05050;
+    --accent-info: #7090c0;
+  }
+  [data-section="oot"] {
+    --accent-link: #b4c0e0;
+  }
+}
+
+/* ===== Manual theme overrides ===== */
+[data-theme="la-green"] {
+  color-scheme: light;
+  --gb-0: #0f380f;
+  --gb-1: #306230;
+  --gb-2: #8bac0f;
+  --gb-3: #9bbc0f;
+}
+[data-theme="gb-pocket"] {
+  color-scheme: dark;
+  --gb-0: #0a0a0a;
+  --gb-1: #3a3a3a;
+  --gb-2: #8a8a8a;
+  --gb-3: #c0c0c0;
+}
+
+/* ===== Font face declarations ===== */
+@font-face {
+  font-family: "Press Start 2P";
+  src: url("/theme/zelda/static/fonts/PressStart2P-subset.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/theme/zelda/static/fonts/Inter-Regular-subset.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/theme/zelda/static/fonts/Inter-SemiBold-subset.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/theme/zelda/static/fonts/JetBrainsMono-Regular-subset.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ===== Typography baseline ===== */
+html { background: var(--gb-3); color: var(--gb-0); }
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+h1, h2, h3 {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  margin: var(--space-lg) 0 var(--space-md);
+}
+h1 { font-size: 1.25rem; }
+h2 { font-size: 1.05rem; }
+h3 { font-size: 0.85rem; }
+a { color: var(--accent-link); text-underline-offset: 3px; }
