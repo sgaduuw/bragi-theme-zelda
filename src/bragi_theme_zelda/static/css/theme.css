@@ -355,3 +355,26 @@ figure.gb-frame picture {
 }
 
 figure.gb-frame img.pixelated { image-rendering: pixelated; }
+
+/* ===== Heart-container <hr> divider ===== */
+
+hr {
+  border: 0;
+  height: 32px;
+  background-image: url("/theme/zelda/static/sprites/heart_container_placeholder.png");
+  background-repeat: space;
+  background-position: center;
+  background-size: 32px 32px;
+  margin: var(--space-xl) auto;
+  max-width: 12rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  hr {
+    filter: brightness(0.7) saturate(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  hr { /* no animation to begin with; placeholder for any future bounce */ }
+}

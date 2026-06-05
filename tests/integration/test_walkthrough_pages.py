@@ -84,3 +84,23 @@ def test_breadcrumbs_render_with_pixel_arrow_separator(client) -> None:
     assert b'class="breadcrumbs"' in resp.data
     assert b"Link&#39;s Awakening" in resp.data
     assert b"Tail Cave" in resp.data
+
+
+def test_hr_renders_in_page_body(client) -> None:
+    """The theme styles <hr> via CSS; markdown's <hr/> survives to the rendered page."""
+    # Seed: set a body with a horizontal rule on the existing tail_cave page.
+    from bragi.core.db import SessionLocal
+    from bragi.core.models.page import Page
+    from bragi.core.render.markdown import render_markdown
+
+    with SessionLocal() as session:
+        page = session.query(Page).filter_by(slug="tail-cave").first()
+        assert page is not None
+        page.body_markdown = "Intro paragraph.\n\n---\n\nNext section."
+        # Force re-render of body_html (bragi typically does this on save).
+        page.body_html = render_markdown(page.body_markdown)
+        session.commit()
+
+    resp = client.get("/links-awakening/tail-cave/", headers={"Host": "zelda.test"})
+    assert resp.status_code == 200
+    assert b"<hr" in resp.data
