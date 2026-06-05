@@ -1,15 +1,18 @@
-{# Breadcrumb trail from site root down to current page.
+{# Breadcrumb trail from section root down to current page.
    Walks page.parent_id via the page_ancestors Jinja global (SQL-backed,
    bragi's Page model has no .parent attribute). Each crumb's URL is
-   produced by url_for_page. ► separators between items. #}
+   produced by url_for_page. ► separators between items.
+
+   Site title is NOT prepended (the top bar already shows the brand
+   linking to /). Single-item trails (current page IS the section
+   root) are suppressed entirely — at that point the breadcrumb would
+   just repeat the H1 below it, adding visual noise without
+   navigational value. #}
 {% if page %}
   {% set crumbs = page_ancestors(page) %}
+  {% if crumbs | length > 1 %}
   <nav class="breadcrumbs" aria-label="Breadcrumb">
     <ol>
-      {% if site %}
-        <li><a href="/">{{ site.title }}</a></li>
-        <li class="sep" aria-hidden="true">&#x25ba;</li>
-      {% endif %}
       {% for crumb in crumbs %}
         <li>
           {% if loop.last %}
@@ -22,4 +25,5 @@
       {% endfor %}
     </ol>
   </nav>
+  {% endif %}
 {% endif %}

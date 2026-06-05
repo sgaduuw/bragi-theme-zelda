@@ -77,13 +77,31 @@ def test_map_sidebar_renders_section_tree(client) -> None:
 
 
 def test_breadcrumbs_render_with_pixel_arrow_separator(client) -> None:
+    """Multi-level page: breadcrumb shows section -> current, no site title."""
     resp = client.get("/links-awakening/tail-cave/", headers={"Host": "zelda.test"})
     assert resp.status_code == 200
-    # Breadcrumb list should include "Link's Awakening" and "Tail Cave"
-    # with the ► separator. Jinja HTML-escapes the apostrophe to &#39;.
     assert b'class="breadcrumbs"' in resp.data
+    # Crumbs include the section root and the current page (Jinja HTML-escapes
+    # the apostrophe to &#39;).
     assert b"Link&#39;s Awakening" in resp.data
     assert b"Tail Cave" in resp.data
+    # Site title is NOT in the breadcrumb (the top bar's brand link already
+    # serves that role; including it here repeats the wordmark visually for
+    # no navigational gain).
+    assert b'class="breadcrumbs"' in resp.data
+    breadcrumbs_html = resp.data.split(b'class="breadcrumbs"', 1)[1].split(
+        b"</nav>", 1
+    )[0]
+    assert b"Zelda Test" not in breadcrumbs_html
+
+
+def test_breadcrumbs_hidden_on_section_root_page(client) -> None:
+    """Top-level page (own breadcrumb chain has length 1): suppress the
+    breadcrumb entirely. The page H1 already conveys 'you are here'; a
+    single-item breadcrumb is just visual noise above it."""
+    resp = client.get("/links-awakening/", headers={"Host": "zelda.test"})
+    assert resp.status_code == 200
+    assert b'class="breadcrumbs"' not in resp.data
 
 
 def test_pause_menu_home_renders(client) -> None:
@@ -93,6 +111,40 @@ def test_pause_menu_home_renders(client) -> None:
     assert b"- PAUSE -" in resp.data
     # Fallback list contains links-awakening (LA pearl tile).
     assert b"links-awakening" in resp.data
+
+
+def test_pause_menu_home_wins_when_site_has_home_page_id(client, db_session) -> None:
+    """`resolve_home` is `tryfirst=True` so the pause-menu beats bragi's page
+    plugin even when an operator has set `site.home_page_id` (the common
+    state after a Ghost import — Ghost ships a `Home` page that the importer
+    maps to the bragi home_page_id). Regression test for the issue surfaced
+    during the first zelda.eelcowesemann.nl cutover."""
+    from bragi.core.models.page import Page, PageStatus
+    from bragi.core.models.site import Site
+
+    # Seed an extra page and point the site's home_page_id at it.
+    site = db_session.query(Site).filter_by(hostname="zelda.test").one()
+    owner_id = site.owner_user_id
+    home_page = Page(
+        site_id=site.id,
+        slug="home",
+        title="Home",
+        body_markdown="This Ghost-imported Home page must NOT render at /.",
+        status=PageStatus.PUBLISHED,
+        show_in_nav=False,
+        menu_order=0,
+        author_id=owner_id,
+    )
+    db_session.add(home_page)
+    db_session.flush()
+    site.home_page_id = home_page.id
+    db_session.commit()
+
+    resp = client.get("/", headers={"Host": "zelda.test"})
+    assert resp.status_code == 200
+    assert b'class="pause-menu"' in resp.data
+    assert b"- PAUSE -" in resp.data
+    assert b"This Ghost-imported Home page must NOT render at /." not in resp.data
 
 
 def test_hr_renders_in_page_body(client) -> None:

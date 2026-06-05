@@ -1,0 +1,31 @@
+# Dependabot: watch the bragi base-image tags referenced in
+# docker/admin.Dockerfile and docker/delivery.Dockerfile. When a new
+# ghcr.io/sgaduuw/bragi-admin / bragi-delivery tag publishes,
+# Dependabot opens a PR bumping ARG BRAGI_VERSION on both. Operator
+# reviews + merges + cuts a theme PATCH release. See
+# _claude/CONTEXT.md "Container deploy" for the manual-bump rationale
+# this augments.
+
+version: 2
+
+updates:
+  - package-ecosystem: docker
+    directory: /docker
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: "deps(docker)"
+      include: scope
+    labels:
+      - dependencies
+      - docker
+    open-pull-requests-limit: 5
+    ignore:
+      # Major-version bumps need deliberate operator review of the
+      # migration (template-contract changes between bragi majors are
+      # the whole reason for the MAJOR bump), not an auto-PR. Drop
+      # these ignores when we want auto-major.
+      - dependency-name: "ghcr.io/sgaduuw/bragi-admin"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "ghcr.io/sgaduuw/bragi-delivery"
+        update-types: ["version-update:semver-major"]
