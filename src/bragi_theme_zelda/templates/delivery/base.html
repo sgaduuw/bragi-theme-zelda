@@ -14,6 +14,7 @@
   {% if webmention_endpoint_url is defined and webmention_endpoint_url() %}<link rel="webmention" href="{{ webmention_endpoint_url() }}">{% endif %}
   {% if pygments_css_url is defined %}<link rel="stylesheet" href="{{ pygments_css_url }}">{% endif %}
   <link rel="stylesheet" href="/theme/zelda/static/css/theme.css">
+  <link rel="stylesheet" href="/theme/zelda/static/css/print.css" media="print">
   {% block social_meta %}{% endblock %}
   {% block jsonld %}{% endblock %}
   <meta name="color-scheme" content="light dark">
