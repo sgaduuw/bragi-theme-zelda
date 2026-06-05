@@ -289,3 +289,28 @@ footer.site .rupee-counter:hover {
   margin-right: var(--space-xs);
   color: var(--gb-1);
 }
+
+/* ===== Breadcrumbs ===== */
+
+.breadcrumbs {
+  font-family: var(--font-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-md);
+  color: var(--gb-1);
+}
+
+.breadcrumbs ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.breadcrumbs li { display: inline; }
+.breadcrumbs li.sep { color: var(--gb-1); opacity: 0.6; }
+.breadcrumbs a { color: var(--gb-1); text-decoration: none; }
+.breadcrumbs a:hover { text-decoration: underline; }
+.breadcrumbs span[aria-current="page"] { color: var(--gb-0); }

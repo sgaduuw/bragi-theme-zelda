@@ -85,6 +85,49 @@ def _resolve_root(root_slug: str) -> tuple[str, str]:
     return (section, label)
 
 
+def _page_ancestors(page: Any) -> list[Any]:
+    """Return the chain from the section root down to `page`, inclusive.
+
+    Bragi's Page model exposes `parent_id` but not `.parent`, so we walk
+    via SQL the same way `_section_helper` does. Cap the walk at 10 hops
+    against malformed parent_id chains.
+
+    Returns an empty list if page is None. The list is ordered root-first
+    (suitable for direct iteration in a breadcrumb template).
+    """
+    if page is None:
+        return []
+
+    # Deferred imports for the same reason as _section_helper.
+    from bragi.core.db import SessionLocal
+    from bragi.core.models.page import Page as _Page
+    from sqlalchemy import select
+
+    chain: list[Any] = [page]
+    current_parent_id: int | None = page.parent_id
+    if current_parent_id is None:
+        return chain
+
+    with SessionLocal() as db:
+        # 10 is well above any realistic walkthrough depth (~5-7 levels:
+        # section -> game -> dungeon -> area -> room -> collectible) and
+        # guards against infinite loops on malformed parent_id chains.
+        for _ in range(10):
+            ancestor = db.execute(
+                select(_Page).where(_Page.id == current_parent_id)
+            ).scalar_one_or_none()
+            if ancestor is None:
+                break
+            chain.append(ancestor)
+            if ancestor.parent_id is None:
+                break
+            current_parent_id = ancestor.parent_id
+
+    # Walked from leaf to root; reverse so the section root is first.
+    chain.reverse()
+    return chain
+
+
 @hookimpl
 def register_theme() -> ThemeSpec:
     """Return the Zelda ThemeSpec.
@@ -116,6 +159,7 @@ def register_template_globals(env: jinja2.Environment) -> None:
     implementation matches the actual bragi hookspec.
     """
     env.globals["section_helper"] = _section_helper
+    env.globals["page_ancestors"] = _page_ancestors
 
 
 __all__ = ["register_theme", "register_template_globals"]
