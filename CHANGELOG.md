@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.1.4] - 2026-06-05
+
+### Added
+
+- `.github/dependabot.yml` watching the `docker/` Dockerfiles for
+  `ghcr.io/sgaduuw/bragi-admin` / `bragi-delivery` tag updates. When a
+  new bragi release publishes container images to GHCR, Dependabot
+  opens a PR bumping `ARG BRAGI_VERSION` in both Dockerfiles. Operator
+  reviews + merges + cuts a theme PATCH; the new base then bakes into
+  the next theme image. Major-version bumps are ignored (template-
+  contract changes need deliberate operator review). Lighter-touch
+  alternative to wiring `repository_dispatch` from bragi → theme; the
+  bragi → theme dependency stays visible as a reviewable PR rather
+  than firing as a background workflow.
+
+### Changed
+
+- Breadcrumb partial (`_breadcrumbs.html`) no longer prepends the site
+  title as the first crumb. The top bar already shows the brand
+  linking to `/`; repeating it in the breadcrumb produced visual
+  doubling (especially when the site title overlaps a section name —
+  e.g. site "Link's Awakening & Ocarina of Time" → section "Link's
+  Awakening" read as a stutter). Breadcrumbs now start at the section
+  root. Single-item trails (current page IS the section root) are
+  suppressed entirely; the page H1 already conveys "you are here".
+
+### Fixed
+
+- Body link contrast: `--accent-link` darkened from `#1a6b1a` (rupee-green,
+  ~3.2:1 against `#9bbc0f` GB-3 body — failed WCAG AA 4.5:1) to
+  `#08400a` (~5.8:1, passes AA). Same rupee-green family, just deeper.
+  Surfaced during the first zelda.eelcowesemann.nl cutover; body link
+  runs were barely distinguishable from surrounding text.
+- `resolve_home` rewritten as a pluggy hookwrapper so the pause-menu
+  inventory grid always wins at `/` when `site.theme == "zelda"`,
+  regardless of whether the operator (or an importer) set
+  `site.home_page_id`. Surfaced during the first
+  zelda.eelcowesemann.nl cutover from Ghost: the Ghost importer set
+  `home_page_id` to an imported `Home` page, and bragi's
+  `bragi.contrib.page` plugin's own `@hookimpl(tryfirst=True)`
+  `resolve_home` was serving it at `/` with the Zelda chrome but
+  without the inventory grid. Two `tryfirst=True` impls compete on
+  plugin-discovery order (non-deterministic), so `tryfirst` on our
+  side wasn't enough; a hookwrapper that `force_result`s the
+  pause-menu response sidesteps the ordering question entirely.
+  Regression test added to the integration suite.
+
 ## [0.1.3] - 2026-06-05
 
 ### Added

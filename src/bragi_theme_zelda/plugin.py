@@ -9,6 +9,7 @@ installs themed 404/500 error pages via `on_app_init`.
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from importlib.resources import files
 from pathlib import Path
 from typing import Any
@@ -169,23 +170,37 @@ def register_template_globals(env: jinja2.Environment) -> None:
     env.globals["page_ancestors"] = _page_ancestors
 
 
-@hookimpl
-def resolve_home(site: Any) -> Response | None:
-    """Serve the pause-menu inventory homepage when site.theme == 'zelda'.
+@hookimpl(hookwrapper=True)
+def resolve_home(site: Any) -> Generator[None, None, None]:
+    """Pause-menu inventory grid wins at `/` when site.theme == 'zelda'.
 
-    Returns None when this theme is not active so bragi's default resolution
-    chain (page plugin's static-homepage impl, then theme_default's
-    welcome-fallback) continues normally.
+    Implemented as a hookwrapper rather than a regular `@hookimpl` because
+    bragi's `bragi.contrib.page` plugin's `resolve_home` is also decorated
+    `@hookimpl(tryfirst=True)`. Two `tryfirst=True` impls compete on
+    plugin-discovery order, which is non-deterministic across entry-point
+    loads — surfaced when an operator imported a Ghost site whose
+    `home_page_id` mapped to a `Home` page: locally the theme won, on CI
+    the page plugin won.
 
-    No `trylast` decorator: this impl should win over theme_default's
-    trylast fallback whenever the site's theme is set to "zelda".
+    Hookwrapper sidesteps the ordering question entirely. We let the inner
+    chain run (the page plugin's impl resolves its home page, anything
+    else returns None), then `force_result` overrides with the pause-menu
+    response so the theme wins deterministically. When the theme is not
+    active we yield without forcing, so the chain's natural firstresult
+    (page plugin's home page, then theme_default's welcome fallback)
+    plays out as before.
     """
     if getattr(site, "theme", None) != "zelda":
-        return None
+        yield
+        return
 
     tiles = _home_tiles_for(site)
     body = render_template("delivery/home/pause_menu.html", site=site, tiles=tiles)
-    return Response(body, mimetype="text/html")
+    # pluggy injects the _Result object into the generator via .send() on
+    # the yield; mypy can't see through pluggy's hookwrapper protocol, so
+    # type the outcome as Any to access force_result.
+    outcome: Any = yield
+    outcome.force_result(Response(body, mimetype="text/html"))
 
 
 def _home_tiles_for(site: Any) -> list[dict[str, str]]:
