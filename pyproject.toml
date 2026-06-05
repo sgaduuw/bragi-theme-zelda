@@ -22,6 +22,8 @@ jinja2 = "^3.1"
 ruff = "^0.6"
 mypy = "^1.11"
 pytest = "^8.0"
+fonttools = "^4.63.0"
+brotli = "^1.2.0"
 
 [tool.poetry.plugins."bragi.plugins"]
 theme_zelda = "bragi_theme_zelda.plugin"
