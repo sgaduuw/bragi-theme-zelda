@@ -44,15 +44,20 @@ Nintendo assets; see ASSETS.md for the full sourcing and licence detail.
 ## Installing
 
 The theme is installed into a downstream bragi deployment via a thin `Dockerfile` that
-builds on the published bragi images and `pip install`s this package from git.
+builds on the published bragi images and `pip install`s this package. From v0.1.1 the
+package is published to PyPI on every GitHub Release; v0.1.0 is git-tag-only.
 
 ### Delivery container
 
 ```dockerfile
 FROM ghcr.io/sgaduuw/bragi-delivery:v1.26.0
 
-RUN pip install --no-cache-dir \
-    "git+https://github.com/sgaduuw/bragi-theme-zelda.git@v0.1.0"
+# v0.1.1 onwards: install from PyPI (pin to a specific version).
+RUN pip install --no-cache-dir bragi-theme-zelda==X.Y.Z
+
+# v0.1.0 only: no PyPI release for that version; install from the git tag.
+# RUN pip install --no-cache-dir \
+#     "git+https://github.com/sgaduuw/bragi-theme-zelda.git@v0.1.0"
 ```
 
 ### Admin container
@@ -60,12 +65,19 @@ RUN pip install --no-cache-dir \
 ```dockerfile
 FROM ghcr.io/sgaduuw/bragi-admin:v1.26.0
 
-RUN pip install --no-cache-dir \
-    "git+https://github.com/sgaduuw/bragi-theme-zelda.git@v0.1.0"
+# v0.1.1 onwards: install from PyPI (pin to a specific version).
+RUN pip install --no-cache-dir bragi-theme-zelda==X.Y.Z
+
+# v0.1.0 only: no PyPI release for that version; install from the git tag.
+# RUN pip install --no-cache-dir \
+#     "git+https://github.com/sgaduuw/bragi-theme-zelda.git@v0.1.0"
 ```
 
 Both containers need the package so template lookups work from the admin preview path and
 from the public delivery path. Restart both after installation to pick up the plugin.
+
+Replace `X.Y.Z` with the version to deploy. v0.1.1 is the first PyPI-published release;
+until it ships, use the git-tag form shown in the commented-out lines.
 
 ## Development
 
