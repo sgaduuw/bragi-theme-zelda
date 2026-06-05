@@ -77,13 +77,31 @@ def test_map_sidebar_renders_section_tree(client) -> None:
 
 
 def test_breadcrumbs_render_with_pixel_arrow_separator(client) -> None:
+    """Multi-level page: breadcrumb shows section -> current, no site title."""
     resp = client.get("/links-awakening/tail-cave/", headers={"Host": "zelda.test"})
     assert resp.status_code == 200
-    # Breadcrumb list should include "Link's Awakening" and "Tail Cave"
-    # with the ► separator. Jinja HTML-escapes the apostrophe to &#39;.
     assert b'class="breadcrumbs"' in resp.data
+    # Crumbs include the section root and the current page (Jinja HTML-escapes
+    # the apostrophe to &#39;).
     assert b"Link&#39;s Awakening" in resp.data
     assert b"Tail Cave" in resp.data
+    # Site title is NOT in the breadcrumb (the top bar's brand link already
+    # serves that role; including it here repeats the wordmark visually for
+    # no navigational gain).
+    assert b'class="breadcrumbs"' in resp.data
+    breadcrumbs_html = (
+        resp.data.split(b'class="breadcrumbs"', 1)[1].split(b"</nav>", 1)[0]
+    )
+    assert b"Zelda Test" not in breadcrumbs_html
+
+
+def test_breadcrumbs_hidden_on_section_root_page(client) -> None:
+    """Top-level page (own breadcrumb chain has length 1): suppress the
+    breadcrumb entirely. The page H1 already conveys 'you are here'; a
+    single-item breadcrumb is just visual noise above it."""
+    resp = client.get("/links-awakening/", headers={"Host": "zelda.test"})
+    assert resp.status_code == 200
+    assert b'class="breadcrumbs"' not in resp.data
 
 
 def test_pause_menu_home_renders(client) -> None:
