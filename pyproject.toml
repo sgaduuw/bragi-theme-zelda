@@ -13,12 +13,17 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.14"
-# Bragi is the host. Git dep because bragi isn't on PyPI (the bragi name there
-# is held by an unrelated project per bragi's CONTEXT.md).
-bragi = { git = "https://github.com/sgaduuw/bragi.git", tag = "v1.26.0" }
+# jinja2 is imported directly by plugin.py (PackageLoader, Environment type).
+# bragi is the host app and is always present in the deployment environment;
+# it is a dev dep here (git dep) so the published wheel has no direct-URL
+# dependency that PyPI rejects.
 jinja2 = "^3.1"
 
 [tool.poetry.group.dev.dependencies]
+# bragi is the host. Git dep because bragi isn't on PyPI (the bragi name there
+# is held by an unrelated project per bragi's CONTEXT.md). Lives in dev so
+# the published wheel carries no direct-URL dep (PyPI rejects those).
+bragi = { git = "https://github.com/sgaduuw/bragi.git", tag = "v1.26.0" }
 ruff = "^0.6"
 mypy = "^1.11"
 pytest = "^8.0"
