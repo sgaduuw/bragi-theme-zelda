@@ -555,3 +555,45 @@ sup.footnote-ref a::after { content: "]"; }
   font-size: 0.55rem;
   letter-spacing: 0.05em;
 }
+
+/* ===== Inventory-row pinned posts ===== */
+
+.pinned-strip {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  overflow: visible;
+}
+
+.pinned-card {
+  background: var(--gb-2);
+  border: 2px solid var(--gb-0);
+  border-radius: 3px;
+  padding: var(--space-md);
+  flex: initial;
+}
+
+.pinned-card img {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-sm);
+  display: block;
+  border: 2px solid var(--gb-0);
+  background: var(--gb-3);
+  image-rendering: pixelated;
+}
+
+.pinned-card h3 {
+  font-family: var(--font-pixel);
+  font-size: 0.55rem;
+  letter-spacing: 0.05em;
+  text-align: center;
+  margin: 0;
+}
+
+.pinned-label {
+  font-family: var(--font-pixel);
+  font-size: 0.5rem;
+  color: var(--gb-1);
+}
+
+.pinned-dots { display: none; /* no carousel; no dots */ }
