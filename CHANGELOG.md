@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `.github/dependabot.yml` watching the `docker/` Dockerfiles for
+  `ghcr.io/sgaduuw/bragi-admin` / `bragi-delivery` tag updates. When a
+  new bragi release publishes container images to GHCR, Dependabot
+  opens a PR bumping `ARG BRAGI_VERSION` in both Dockerfiles. Operator
+  reviews + merges + cuts a theme PATCH; the new base then bakes into
+  the next theme image. Major-version bumps are ignored (template-
+  contract changes need deliberate operator review). Lighter-touch
+  alternative to wiring `repository_dispatch` from bragi → theme; the
+  bragi → theme dependency stays visible as a reviewable PR rather
+  than firing as a background workflow.
+
 ### Changed
 
 - Breadcrumb partial (`_breadcrumbs.html`) no longer prepends the site
