@@ -1,7 +1,8 @@
 """bragi_theme_zelda plugin hookimpls.
 
 Registers the Zelda (Link's Awakening) theme via `register_theme`, and
-exposes `section_helper` to Jinja templates via `register_template_globals`.
+exposes `section_helper` + `page_ancestors` to Jinja templates via
+`register_template_globals`.
 """
 
 from __future__ import annotations
@@ -148,11 +149,13 @@ def register_theme() -> ThemeSpec:
 
 @hookimpl
 def register_template_globals(env: jinja2.Environment) -> None:
-    """Expose the section_helper to delivery templates.
+    """Expose section_helper and page_ancestors to delivery templates.
 
     bragi's hookspec mutates the Jinja `env` in place (adding globals,
-    filters, or tests). We inject `section_helper` so base.html can call
-    `section_helper(page)` without importing Python from a template.
+    filters, or tests). We inject `section_helper(page)` for the OoT
+    chrome flip in base.html and `page_ancestors(page)` for the
+    breadcrumb partial; both bypass `page.parent` (absent on bragi's
+    Page model) by walking `parent_id` via SQL.
 
     Note: the hookspec signature is `(env: jinja2.Environment) -> None`,
     not `dict[str, Any]`. The plan's assumed signature differed; this
