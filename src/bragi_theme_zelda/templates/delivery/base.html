@@ -43,7 +43,7 @@
       {% include "delivery/_site_nav.html" %}
     </aside>
     <main>
-      {% block breadcrumbs %}{% endblock %}
+      {% block breadcrumbs %}{% include "delivery/_breadcrumbs.html" %}{% endblock %}
       {% block content %}{% endblock %}
     </main>
   </div>

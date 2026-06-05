@@ -74,3 +74,13 @@ def test_map_sidebar_renders_section_tree(client) -> None:
     assert b"MAP" in resp.data
     # The ► cursor (U+25BA, UTF-8: 0xe2 0x96 0xba) renders on the current item.
     assert b"\xe2\x96\xba" in resp.data
+
+
+def test_breadcrumbs_render_with_pixel_arrow_separator(client) -> None:
+    resp = client.get("/links-awakening/tail-cave/", headers={"Host": "zelda.test"})
+    assert resp.status_code == 200
+    # Breadcrumb list should include "Link's Awakening" and "Tail Cave"
+    # with the ► separator. Jinja HTML-escapes the apostrophe to &#39;.
+    assert b'class="breadcrumbs"' in resp.data
+    assert b"Link&#39;s Awakening" in resp.data
+    assert b"Tail Cave" in resp.data
