@@ -60,3 +60,20 @@ def test_section_helper_registered_as_template_global(
     helper = env.globals["section_helper"]
     # Sanity: calling on None returns ('', '').
     assert helper(None) == ("", "")
+
+
+def test_textbox_macro_renders(pm: pluggy.PluginManager) -> None:
+    import jinja2
+
+    spec = pm.hook.register_theme()[0]
+    env = jinja2.Environment(loader=spec.template_loader, autoescape=True)
+    tpl = env.from_string(
+        "{% import 'delivery/_callout_textbox.html' as cb %}"
+        "{% call cb.textbox('owl') %}<p>Hoot.</p>{% endcall %}"
+    )
+    out = tpl.render()
+    assert 'class="textbox textbox--owl"' in out
+    assert "OWL:" in out
+    # The {% call %} block body is auto-escaped; assert on visible text only
+    # so the test is agnostic to whether the caller wraps in autoescape or not.
+    assert "Hoot." in out
