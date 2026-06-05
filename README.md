@@ -27,18 +27,20 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.1.2
+## Status: v0.1.3
 
-v0.1.2 is a PATCH release. The dev dep for the theme's own venv and CI was
-switched from `bragi @ git+https://...@v1.26.0` to `bragi-cms ^1.27` from
-PyPI. No runtime behaviour change for sites running with `theme='zelda'`.
+v0.1.3 adds pre-built container images `ghcr.io/sgaduuw/bragi-admin-zelda` and
+`ghcr.io/sgaduuw/bragi-delivery-zelda`. Each image is the corresponding bragi base (pinned
+to v1.27.3) with the theme wheel preinstalled. Operators can now pull a single image instead
+of writing a downstream Dockerfile to layer the theme on top of the bragi base.
 
-v0.1.1 is the first PyPI-published release. It ships the same full visual system as v0.1.0
-(MAP sidebar, chrome, pause-menu home, ZZZZZ 404, all four cosplay JS motifs, and subsetted
-woff2 fonts). **Character portraits, item tiles, the heart-container, and the 404 scene art
-are still placeholder PNGs** (Pillow-generated text-on-coloured-square). The CSS / JS /
-templates reference the correct sprite filenames, so a future release swaps in real art via
-per-file PNG replacement with no code changes.
+v0.1.2 switched the dev dep from `bragi @ git+https://...@v1.26.0` to `bragi-cms ^1.27`
+from PyPI. No runtime behaviour change for sites running with `theme='zelda'`.
+
+v0.1.1 is the first PyPI-published release. **Character portraits, item tiles, the
+heart-container, and the 404 scene art are still placeholder PNGs** (Pillow-generated
+text-on-coloured-square). The CSS / JS / templates reference the correct sprite filenames,
+so a future release swaps in real art via per-file PNG replacement with no code changes.
 
 ## Asset provenance
 
@@ -47,41 +49,60 @@ Nintendo assets; see ASSETS.md for the full sourcing and licence detail.
 
 ## Installing
 
-The theme is installed into a downstream bragi deployment via a thin `Dockerfile` that
-builds on the published bragi images and `pip install`s this package. From v0.1.1 the
-package is published to PyPI on every GitHub Release; v0.1.0 is git-tag-only.
+### Recommended: pre-built variant images (v0.1.3+)
 
-### Delivery container
+From v0.1.3, pre-built images are published on every GitHub Release. Pull the variant
+directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
-FROM ghcr.io/sgaduuw/bragi-delivery:v1.26.0
-
-# Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.1.2
-
-# For development against an unreleased commit, use the git+https form instead:
-# RUN pip install --no-cache-dir \
-#     "git+https://github.com/sgaduuw/bragi-theme-zelda.git@v0.1.0"
+# Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.1.3
+# That's it. No further pip install step needed.
 ```
 
-### Admin container
-
 ```dockerfile
-FROM ghcr.io/sgaduuw/bragi-admin:v1.26.0
-
-# Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.1.2
-
-# For development against an unreleased commit, use the git+https form instead:
-# RUN pip install --no-cache-dir \
-#     "git+https://github.com/sgaduuw/bragi-theme-zelda.git@v0.1.0"
+# Admin container — bragi-admin + bragi-theme-zelda preinstalled.
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.1.3
+# That's it. No further pip install step needed.
 ```
 
 Both containers need the package so template lookups work from the admin preview path and
 from the public delivery path. Restart both after installation to pick up the plugin.
 
+### Fallback: downstream Dockerfile from PyPI
+
+Use this form when you need a different bragi base version than the one pinned in the
+variant image (see CONTEXT.md "Container deploy" for the `BRAGI_VERSION` bump policy), or
+for development against an unreleased commit.
+
+#### Delivery container
+
+```dockerfile
+FROM ghcr.io/sgaduuw/bragi-delivery:v1.27.3
+
+# Install from PyPI (pin to a specific version).
+RUN pip install --no-cache-dir bragi-theme-zelda==0.1.3
+
+# For development against an unreleased commit, use the git+https form instead:
+# RUN pip install --no-cache-dir \
+#     "git+https://github.com/sgaduuw/bragi-theme-zelda.git@<sha-or-branch>"
+```
+
+#### Admin container
+
+```dockerfile
+FROM ghcr.io/sgaduuw/bragi-admin:v1.27.3
+
+# Install from PyPI (pin to a specific version).
+RUN pip install --no-cache-dir bragi-theme-zelda==0.1.3
+
+# For development against an unreleased commit, use the git+https form instead:
+# RUN pip install --no-cache-dir \
+#     "git+https://github.com/sgaduuw/bragi-theme-zelda.git@<sha-or-branch>"
+```
+
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.1.2 is the current release.
+release; v0.1.0 is git-tag-only. v0.1.3 is the current release.
 
 ## Development
 

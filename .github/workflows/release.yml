@@ -1,4 +1,4 @@
-name: Publish to PyPI
+name: Publish Release Artifacts
 
 on:
   release:
@@ -9,7 +9,7 @@ on:
 # 2026-06-05 entry for the one-time setup steps).
 
 jobs:
-  build-and-publish:
+  publish-pypi:
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -45,3 +45,82 @@ jobs:
           # No `packages-dir` — defaults to dist/.
           skip-existing: true  # idempotent if a re-run hits the same version
           verbose: true
+
+  publish-docker:
+    needs: publish-pypi
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: [admin, delivery]
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve version from release tag
+        id: version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      # PyPI's JSON endpoint returns 200 well before `pip install` can resolve
+      # the wheel from every CDN node. Bragi's release.yml uses 60 iterations
+      # (120s); mirror that here. The Dockerfile's pip install will retry,
+      # but a clean poll first keeps the build log readable.
+      - name: Wait for PyPI propagation
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsSI "https://pypi.org/pypi/bragi-theme-zelda/${{ steps.version.outputs.version }}/json" > /dev/null 2>&1; then
+              echo "bragi-theme-zelda==${{ steps.version.outputs.version }} reachable on PyPI"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "PyPI did not surface bragi-theme-zelda==${{ steps.version.outputs.version }} after 120s"
+          exit 1
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          # bragi-admin-zelda / bragi-delivery-zelda — preserves bragi-<role>
+          # prefix so the variants sort adjacent to the base in GHCR listings.
+          images: ghcr.io/${{ github.repository_owner }}/bragi-${{ matrix.image }}-zelda
+          flavor: |
+            latest=auto
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/${{ matrix.image }}.Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            THEME_VERSION=${{ steps.version.outputs.version }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
