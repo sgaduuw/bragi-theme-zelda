@@ -1,8 +1,9 @@
 """bragi_theme_zelda plugin hookimpls.
 
-Registers the Zelda (Link's Awakening) theme via `register_theme`, and
+Registers the Zelda (Link's Awakening) theme via `register_theme`,
 exposes `section_helper` + `page_ancestors` to Jinja templates via
-`register_template_globals`.
+`register_template_globals`, and serves the pause-menu inventory
+homepage via `resolve_home` when the active site's theme is "zelda".
 """
 
 from __future__ import annotations
@@ -13,6 +14,8 @@ from typing import Any
 
 import jinja2
 from bragi.api import ThemeSpec, hookimpl
+from flask import render_template
+from werkzeug.wrappers import Response
 
 from bragi_theme_zelda.section import DEFAULT_SECTION_LABELS
 
@@ -165,4 +168,89 @@ def register_template_globals(env: jinja2.Environment) -> None:
     env.globals["page_ancestors"] = _page_ancestors
 
 
-__all__ = ["register_theme", "register_template_globals"]
+@hookimpl
+def resolve_home(site: Any) -> Response | None:
+    """Serve the pause-menu inventory homepage when site.theme == 'zelda'.
+
+    Returns None when this theme is not active so bragi's default resolution
+    chain (page plugin's static-homepage impl, then theme_default's
+    welcome-fallback) continues normally.
+
+    No `trylast` decorator: this impl should win over theme_default's
+    trylast fallback whenever the site's theme is set to "zelda".
+    """
+    if getattr(site, "theme", None) != "zelda":
+        return None
+
+    tiles = _home_tiles_for(site)
+    body = render_template("delivery/home/pause_menu.html", site=site, tiles=tiles)
+    return Response(body, mimetype="text/html")
+
+
+def _home_tiles_for(site: Any) -> list[dict[str, str]]:
+    """Return the inventory-tile dict list rendered on the pause-menu home.
+
+    Each tile carries: slug, title, url, sprite. Reads published children of
+    site.home_page_id when that field is set; otherwise falls back to a
+    hardcoded [LA, OoT, About] list so the page is never empty on a fresh
+    site.
+
+    The sprite value is the PNG filename stem under
+    `static/sprites/items/`; the template appends `.png`.
+    """
+    # Deferred imports: this module loads at app boot when the bragi DB may
+    # not yet be connectable. Deferring keeps register_theme cheap and
+    # mirrors the pattern used in _section_helper above.
+    from bragi.core.db import SessionLocal
+    from bragi.core.models.page import Page as _Page
+    from bragi.core.models.page import PageStatus
+
+    fallback: list[dict[str, str]] = [
+        {
+            "slug": "links-awakening",
+            "title": "Link's Awakening",
+            "url": "/links-awakening/",
+            "sprite": "la_pearl",
+        },
+        {
+            "slug": "ocarina-of-time",
+            "title": "Ocarina of Time",
+            "url": "/ocarina-of-time/",
+            "sprite": "kokiri_emerald",
+        },
+        {
+            "slug": "about",
+            "title": "About",
+            "url": "/about/",
+            "sprite": "owl_statue",
+        },
+    ]
+
+    home_id = getattr(site, "home_page_id", None)
+    if home_id is None:
+        return fallback
+
+    with SessionLocal() as session:
+        children = (
+            session.query(_Page)
+            .filter_by(site_id=site.id, parent_id=home_id, status=PageStatus.PUBLISHED)
+            .order_by(_Page.menu_order, _Page.title)
+            .all()
+        )
+        if not children:
+            return fallback
+        return [
+            {
+                "slug": p.slug,
+                "title": p.title,
+                # bragi's url_for_page is not available here; cheap path
+                # build is fine for top-level children of the home page.
+                "url": f"/{p.slug}/",
+                # PNG name convention: slug hyphens become underscores.
+                "sprite": p.slug.replace("-", "_"),
+            }
+            for p in children
+        ]
+
+
+__all__ = ["register_theme", "register_template_globals", "resolve_home"]
