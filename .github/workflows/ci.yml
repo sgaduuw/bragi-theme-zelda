@@ -20,9 +20,9 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          # Pinned to 3.12 to match bragi's own CI; GHA does not yet
-          # ship pre-built 3.14 images. Bump when GHA catches up.
-          python-version: "3.12"
+          # 3.14 matches pyproject.toml's `^3.14` constraint and the
+          # local runtime. GHA ships stable 3.14 pre-built images.
+          python-version: "3.14"
 
       - name: Install Poetry
         run: pipx install poetry
