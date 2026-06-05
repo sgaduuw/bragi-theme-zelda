@@ -11,16 +11,20 @@
    - There is no `.is_current` field; we compare `url_for_page(node.page)`
      against `request.path` to compute it at render time. #}
 {% set tree = site_nav_tree() %}
-<div class="map-panel">
-  <div class="map-label">MAP</div>
+<nav class="map-panel" aria-label="Section navigation">
+  <div class="map-label" aria-hidden="true">MAP</div>
   {% if tree %}
-    <ul class="map-tree" role="navigation" aria-label="Section navigation">
+    <ul class="map-tree">
       {% for node in tree %}
         {% set node_url = url_for_page(node.page) %}
         {# A node is "current" when we're on the page itself (exact match) or
            on a descendant page (request.path starts with the node's URL).
            The latter case keeps the parent highlighted while walking dungeon
            sub-pages, which is the MAP sidebar's primary UX. #}
+        {# is_current: parent stays highlighted while walking sub-pages.
+           Safe because build_nav_tree strips the home-promoted page from
+           the tree, so node_url is never "/" (otherwise startswith would
+           match every path). #}
         {% set is_current = request.path == node_url or request.path.startswith(node_url) %}
         <li class="map-item{% if is_current %} is-current{% endif %}">
           {% if is_current %}<span class="cursor" aria-hidden="true">►</span>{% endif %}
@@ -38,4 +42,4 @@
       {% endfor %}
     </ul>
   {% endif %}
-</div>
+</nav>
