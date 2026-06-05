@@ -169,7 +169,7 @@ def register_template_globals(env: jinja2.Environment) -> None:
     env.globals["page_ancestors"] = _page_ancestors
 
 
-@hookimpl
+@hookimpl(tryfirst=True)
 def resolve_home(site: Any) -> Response | None:
     """Serve the pause-menu inventory homepage when site.theme == 'zelda'.
 
@@ -177,8 +177,15 @@ def resolve_home(site: Any) -> Response | None:
     chain (page plugin's static-homepage impl, then theme_default's
     welcome-fallback) continues normally.
 
-    No `trylast` decorator: this impl should win over theme_default's
-    trylast fallback whenever the site's theme is set to "zelda".
+    `tryfirst=True` is load-bearing: bragi's `bragi.contrib.page` plugin
+    has its own `resolve_home` that returns the page mapped to
+    `site.home_page_id` when set. Without `tryfirst`, plain `@hookimpl`
+    ordering is non-deterministic across entry-point load order, and in
+    practice the page plugin wins — operators who imported a Ghost site
+    with a `Home` page then see that page render at `/` instead of the
+    pause-menu inventory grid. `tryfirst` makes our intent explicit:
+    when `site.theme == "zelda"`, the pause-menu always wins, regardless
+    of `home_page_id`.
     """
     if getattr(site, "theme", None) != "zelda":
         return None
