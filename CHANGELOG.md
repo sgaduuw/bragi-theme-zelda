@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Breadcrumb partial (`_breadcrumbs.html`) no longer prepends the site
+  title as the first crumb. The top bar already shows the brand
+  linking to `/`; repeating it in the breadcrumb produced visual
+  doubling (especially when the site title overlaps a section name —
+  e.g. site "Link's Awakening & Ocarina of Time" → section "Link's
+  Awakening" read as a stutter). Breadcrumbs now start at the section
+  root. Single-item trails (current page IS the section root) are
+  suppressed entirely; the page H1 already conveys "you are here".
+
 ### Fixed
 
 - Body link contrast: `--accent-link` darkened from `#1a6b1a` (rupee-green,
