@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `resolve_home` hookimpl now decorated `@hookimpl(tryfirst=True)` so the
+  pause-menu inventory grid renders at `/` even when the site has
+  `home_page_id` set. Previously, bragi's `bragi.contrib.page` plugin's
+  own `resolve_home` would win in the hook chain (entry-point load order
+  isn't deterministic for plain `@hookimpl` registrations), serving the
+  configured home page instead of the pause-menu. Surfaced during the
+  first zelda.eelcowesemann.nl cutover from Ghost: the importer set
+  `home_page_id` to a Ghost-imported `Home` page, and that page rendered
+  at `/` with the Zelda chrome but without the inventory grid.
+  Regression test added to the integration suite.
+
 ## [0.1.3] - 2026-06-05
 
 ### Added
