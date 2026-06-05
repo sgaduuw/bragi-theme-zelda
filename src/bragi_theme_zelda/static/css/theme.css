@@ -460,3 +460,39 @@ sup.footnote-ref a::after { content: "]"; }
   font-size: 0.55rem;
   margin: 0 0 var(--space-xs);
 }
+
+/* ===== Text-box callouts ===== */
+
+.textbox {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-md);
+  background: var(--gb-1);
+  color: var(--gb-3);
+  border: 2px solid var(--gb-0);
+  border-radius: 3px;
+  padding: var(--space-sm) var(--space-md);
+  margin: var(--space-md) 0;
+}
+
+.textbox__portrait {
+  width: 32px;
+  height: 32px;
+  background-color: var(--gb-2);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: 2px solid var(--gb-0);
+  image-rendering: pixelated;
+}
+
+.textbox__speaker {
+  font-family: var(--font-pixel);
+  font-size: 0.55rem;
+  letter-spacing: 0.05em;
+  margin: 0 0 var(--space-xs);
+}
+
+.textbox__body p { margin: 0 0 var(--space-xs); }
+.textbox__body p:last-child { margin-bottom: 0; }
+.textbox__body a { color: var(--gb-3); text-decoration: underline; }
