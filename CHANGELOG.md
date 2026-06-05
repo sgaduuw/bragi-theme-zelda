@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Dev dep: `bragi @ git+https://...@v1.26.0` replaced with `bragi-cms ^1.27`
+  from PyPI. The theme's runtime contract is unchanged (still imports from
+  `bragi`); only the install path for the dev/CI venv moves. Faster CI
+  install (PyPI CDN vs git clone), no GitHub-side rate-limit risk.
+
 ## [0.1.1] - 2026-06-05
 
 First PyPI-published version. No runtime behaviour change from v0.1.0.
