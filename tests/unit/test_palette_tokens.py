@@ -49,7 +49,7 @@ LA_LIGHT_TOKENS = {
     "--gb-1": "#306230",
     "--gb-2": "#8bac0f",
     "--gb-3": "#9bbc0f",
-    "--accent-link": "#1a6b1a",
+    "--accent-link": "#08400a",
     "--accent-warn": "#a8201a",
     "--accent-info": "#3a6ba5",
 }

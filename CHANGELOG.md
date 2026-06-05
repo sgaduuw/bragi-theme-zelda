@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Body link contrast: `--accent-link` darkened from `#1a6b1a` (rupee-green,
+  ~3.2:1 against `#9bbc0f` GB-3 body — failed WCAG AA 4.5:1) to
+  `#08400a` (~5.8:1, passes AA). Same rupee-green family, just deeper.
+  Surfaced during the first zelda.eelcowesemann.nl cutover; body link
+  runs were barely distinguishable from surrounding text.
 - `resolve_home` rewritten as a pluggy hookwrapper so the pause-menu
   inventory grid always wins at `/` when `site.theme == "zelda"`,
   regardless of whether the operator (or an importer) set
