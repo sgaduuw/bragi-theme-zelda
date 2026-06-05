@@ -136,12 +136,58 @@
     }
   }
 
+  // ===== Item-acquired flourish =====
+
+  // Maps html[data-section] -> {sprite, label}. New section = add a row.
+  var ITEM_FOR_SECTION = {
+    "la":  { sprite: "la_pearl",        label: "LINK'S AWAKENING GUIDE" },
+    "oot": { sprite: "kokiri_emerald",  label: "OCARINA OF TIME GUIDE" }
+  };
+
+  function maybeShowItemAcquired() {
+    var section = document.documentElement.getAttribute("data-section");
+    if (!section) return;
+    var item = ITEM_FOR_SECTION[section];
+    if (!item) return;
+    var key = "zelda-acquired-" + section;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch (e) { return; }
+
+    var flourish = document.createElement("div");
+    flourish.className = "item-acquired";
+    flourish.setAttribute("role", "dialog");
+    flourish.setAttribute("aria-label", "You got the " + item.label + "!");
+    flourish.innerHTML =
+      '<div class="item-acquired__inner">' +
+      '<img class="item-acquired__sprite" src="/theme/zelda/static/sprites/items/' + item.sprite + '.png" alt="">' +
+      '<p class="item-acquired__text">You got the<br><strong>' + item.label + '</strong>!</p>' +
+      '<button class="item-acquired__dismiss" type="button">OK</button>' +
+      '</div>';
+    document.body.appendChild(flourish);
+
+    var btn = flourish.querySelector(".item-acquired__dismiss");
+    btn.focus();
+    function dismiss() {
+      flourish.classList.add("is-dismissed");
+      window.setTimeout(function () { flourish.remove(); }, 350);
+      document.removeEventListener("keydown", onKey, true);
+    }
+    function onKey(e) {
+      if (e.key === "Escape" || e.key === "Enter" || e.key === " ") dismiss();
+    }
+    btn.addEventListener("click", dismiss);
+    document.addEventListener("keydown", onKey, true);
+  }
+
   // ===== Init =====
 
   function init() {
     initThemeToggle();
     initRupeeCounter();
     initSplash();
+    maybeShowItemAcquired();
   }
 
   if (document.readyState === "loading") {
