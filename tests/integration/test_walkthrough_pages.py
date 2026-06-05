@@ -95,6 +95,40 @@ def test_pause_menu_home_renders(client) -> None:
     assert b"links-awakening" in resp.data
 
 
+def test_pause_menu_home_wins_when_site_has_home_page_id(client, db_session) -> None:
+    """`resolve_home` is `tryfirst=True` so the pause-menu beats bragi's page
+    plugin even when an operator has set `site.home_page_id` (the common
+    state after a Ghost import — Ghost ships a `Home` page that the importer
+    maps to the bragi home_page_id). Regression test for the issue surfaced
+    during the first zelda.eelcowesemann.nl cutover."""
+    from bragi.core.models.page import Page, PageStatus
+    from bragi.core.models.site import Site
+
+    # Seed an extra page and point the site's home_page_id at it.
+    site = db_session.query(Site).filter_by(hostname="zelda.test").one()
+    owner_id = site.owner_user_id
+    home_page = Page(
+        site_id=site.id,
+        slug="home",
+        title="Home",
+        body_markdown="This Ghost-imported Home page must NOT render at /.",
+        status=PageStatus.PUBLISHED,
+        show_in_nav=False,
+        menu_order=0,
+        author_id=owner_id,
+    )
+    db_session.add(home_page)
+    db_session.flush()
+    site.home_page_id = home_page.id
+    db_session.commit()
+
+    resp = client.get("/", headers={"Host": "zelda.test"})
+    assert resp.status_code == 200
+    assert b'class="pause-menu"' in resp.data
+    assert b"- PAUSE -" in resp.data
+    assert b"This Ghost-imported Home page must NOT render at /." not in resp.data
+
+
 def test_hr_renders_in_page_body(client) -> None:
     """The theme styles <hr> via CSS; markdown's <hr/> survives to the rendered page."""
     # Seed: set a body with a horizontal rule on the existing tail_cave page.
