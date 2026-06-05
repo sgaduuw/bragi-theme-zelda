@@ -22,13 +22,16 @@ jinja2 = "^3.1"
 ruff = "^0.6"
 mypy = "^1.11"
 pytest = "^8.0"
+fonttools = "^4.63.0"
+brotli = "^1.2.0"
 
 [tool.poetry.plugins."bragi.plugins"]
 theme_zelda = "bragi_theme_zelda.plugin"
 
 [tool.ruff]
 line-length = 88
-target-version = "py314"
+# ruff 0.6.x tops out at py313; bump when upgrading ruff past 0.7.
+target-version = "py313"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
@@ -38,6 +41,19 @@ select = ["E", "F", "I", "B", "UP", "N", "RUF"]
 python_version = "3.14"
 strict = true
 files = ["src"]
+
+# bragi does not ship py.typed (it's deploy-as-container, not a PyPI lib).
+# Silence mypy's import-untyped error for the bragi imports in this package.
+[[tool.mypy.overrides]]
+module = "bragi.*"
+ignore_missing_imports = true
+
+# pluggy's @hookimpl decorator doesn't preserve the decorated function's
+# type signature, so mypy fires "untyped-decorator" in strict mode.
+# The hook contract is tested behaviourally; suppressing here is intentional.
+[[tool.mypy.overrides]]
+module = "bragi_theme_zelda.plugin"
+disable_error_code = ["untyped-decorator"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

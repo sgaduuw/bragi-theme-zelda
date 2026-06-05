@@ -1,0 +1,45 @@
+/* Print stylesheet: strip the chrome for walkthrough printables.
+ *
+ * Force light palette, hide top bar / sidebar / footer / cosplay
+ * flourishes, drop image-frame caption bars (the caption text is
+ * still in the alt). */
+
+@media print {
+  :root {
+    color-scheme: light;
+    --gb-0: #000;
+    --gb-1: #444;
+    --gb-2: #ccc;
+    --gb-3: #fff;
+    --accent-link: #000;
+  }
+  header.site,
+  footer.site,
+  .map-sidebar,
+  .breadcrumbs,
+  .push-start-splash,
+  .item-acquired,
+  .theme-toggle,
+  .rupee-counter {
+    display: none !important;
+  }
+  .frame {
+    display: block;
+    padding: 0;
+    max-width: none;
+  }
+  main { padding: 0; }
+  body { background: #fff; color: #000; font-family: serif; }
+  h1, h2, h3 { font-family: serif; letter-spacing: 0; }
+  a { color: #000; text-decoration: underline; }
+  figure.gb-frame { border: 1px solid #000; background: transparent; }
+  figure.gb-frame .gb-frame__label { display: none; }
+  figure.gb-frame .gb-frame__inner { padding: 0; background: transparent; }
+  figure.gb-frame img { border: 1px solid #000; }
+  hr { background-image: none; border-top: 1px solid #000; height: 1px; }
+  .textbox {
+    background: transparent;
+    color: #000;
+    border: 1px solid #000;
+  }
+}

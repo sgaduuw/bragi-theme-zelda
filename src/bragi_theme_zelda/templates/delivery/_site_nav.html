@@ -1,0 +1,45 @@
+{# MAP sidebar — shadows bragi.contrib.nav's default _site_nav.html.
+   Renders the current section's tree: siblings of the current page +
+   expanded children of the current page when it has any.
+
+   Nav contract (bragi.contrib.nav):
+   - `site_nav_tree()` is a Jinja global that returns list[NavNode].
+   - Each NavNode has `.page` (SQLAlchemy Page row) and `.children`
+     (list[NavNode] of direct children, never deeper than one level).
+   - `url_for_page(page)` is a Jinja global that returns the canonical
+     path string (e.g. "/links-awakening/").
+   - There is no `.is_current` field; we compare `url_for_page(node.page)`
+     against `request.path` to compute it at render time. #}
+{% set tree = site_nav_tree() %}
+<nav class="map-panel" aria-label="Section navigation">
+  <div class="map-label" aria-hidden="true">MAP</div>
+  {% if tree %}
+    <ul class="map-tree">
+      {% for node in tree %}
+        {% set node_url = url_for_page(node.page) %}
+        {# A node is "current" when we're on the page itself (exact match) or
+           on a descendant page (request.path starts with the node's URL).
+           The latter case keeps the parent highlighted while walking dungeon
+           sub-pages, which is the MAP sidebar's primary UX. #}
+        {# is_current: parent stays highlighted while walking sub-pages.
+           Safe because build_nav_tree strips the home-promoted page from
+           the tree, so node_url is never "/" (otherwise startswith would
+           match every path). #}
+        {% set is_current = request.path == node_url or request.path.startswith(node_url) %}
+        <li class="map-item{% if is_current %} is-current{% endif %}">
+          {% if is_current %}<span class="cursor" aria-hidden="true">►</span>{% endif %}
+          <a class="site-nav__link" href="{{ node_url }}">{{ node.page.title }}</a>
+          {% if is_current and node.children %}
+            <ul class="map-sub">
+              {% for child in node.children %}
+                <li class="map-sub-item">
+                  <a class="site-nav__link" href="{{ url_for_page(child.page) }}">{{ child.page.title }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</nav>

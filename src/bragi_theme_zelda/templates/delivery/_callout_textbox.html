@@ -1,0 +1,17 @@
+{# Callout text box. Speaker names supported in v0.1.0:
+   owl, marin, tarin, ulrira. Add a new speaker: add a portrait PNG under
+   static/sprites/portraits/<name>.png and a new entry in the _labels dict
+   below. The caller() block holds the body markup (one or more <p> tags). #}
+
+{% macro textbox(speaker, label="") %}
+  {% set _labels = {"owl": "OWL", "marin": "MARIN", "tarin": "TARIN", "ulrira": "ULRIRA"} %}
+  {% set _label = label or _labels.get(speaker, speaker | upper) %}
+  <aside class="textbox textbox--{{ speaker }}" role="note">
+    <div class="textbox__portrait" aria-hidden="true"
+         style="background-image: url('/theme/zelda/static/sprites/portraits/{{ speaker }}.png');"></div>
+    <div class="textbox__body">
+      <p class="textbox__speaker">{{ _label }}:</p>
+      {{ caller() }}
+    </div>
+  </aside>
+{% endmacro %}
