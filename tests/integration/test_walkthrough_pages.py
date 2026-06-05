@@ -86,6 +86,15 @@ def test_breadcrumbs_render_with_pixel_arrow_separator(client) -> None:
     assert b"Tail Cave" in resp.data
 
 
+def test_pause_menu_home_renders(client) -> None:
+    resp = client.get("/", headers={"Host": "zelda.test"})
+    assert resp.status_code == 200
+    assert b'class="pause-menu"' in resp.data
+    assert b"- PAUSE -" in resp.data
+    # Fallback list contains links-awakening (LA pearl tile).
+    assert b"links-awakening" in resp.data
+
+
 def test_hr_renders_in_page_body(client) -> None:
     """The theme styles <hr> via CSS; markdown's <hr/> survives to the rendered page."""
     # Seed: set a body with a horizontal rule on the existing tail_cave page.
