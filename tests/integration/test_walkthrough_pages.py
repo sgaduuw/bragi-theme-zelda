@@ -89,9 +89,9 @@ def test_breadcrumbs_render_with_pixel_arrow_separator(client) -> None:
     # serves that role; including it here repeats the wordmark visually for
     # no navigational gain).
     assert b'class="breadcrumbs"' in resp.data
-    breadcrumbs_html = (
-        resp.data.split(b'class="breadcrumbs"', 1)[1].split(b"</nav>", 1)[0]
-    )
+    breadcrumbs_html = resp.data.split(b'class="breadcrumbs"', 1)[1].split(
+        b"</nav>", 1
+    )[0]
     assert b"Zelda Test" not in breadcrumbs_html
 
 
