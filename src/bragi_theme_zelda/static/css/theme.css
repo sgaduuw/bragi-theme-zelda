@@ -314,3 +314,44 @@ footer.site .rupee-counter:hover {
 .breadcrumbs a { color: var(--gb-1); text-decoration: none; }
 .breadcrumbs a:hover { text-decoration: underline; }
 .breadcrumbs span[aria-current="page"] { color: var(--gb-0); }
+
+/* ===== GB image frame ===== */
+
+figure.gb-frame {
+  margin: var(--space-md) 0;
+  border: 2px solid var(--gb-0);
+  border-radius: 3px;
+  background: var(--gb-1);
+  overflow: hidden;
+  display: inline-block;
+  max-width: 100%;
+}
+
+figure.gb-frame .gb-frame__label {
+  display: block;
+  background: var(--gb-1);
+  color: var(--gb-3);
+  font-family: var(--font-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.05em;
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 2px solid var(--gb-0);
+}
+
+figure.gb-frame .gb-frame__inner {
+  padding: 6px;
+  background: var(--gb-1);
+}
+
+figure.gb-frame img,
+figure.gb-frame picture {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--gb-0);
+  background: var(--gb-3);
+  /* LA pixel-art screenshots should stay crisp; modern screenshots/
+     photos use their natural rendering. Per-image opt-in via a class. */
+}
+
+figure.gb-frame img.pixelated { image-rendering: pixelated; }
