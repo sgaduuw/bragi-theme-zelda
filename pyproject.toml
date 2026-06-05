@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bragi-theme-zelda"
-version = "0.1.1"
+version = "0.1.2"
 description = "Link's-Awakening-flavoured theme for the bragi CMS, used by zelda.eelcowesemann.nl"
 authors = ["Eelco Wesemann <claude-ai@init1.nl>"]
 license = "MIT"
@@ -15,15 +15,15 @@ include = [
 python = "^3.14"
 # jinja2 is imported directly by plugin.py (PackageLoader, Environment type).
 # bragi is the host app and is always present in the deployment environment;
-# it is a dev dep here (git dep) so the published wheel has no direct-URL
-# dependency that PyPI rejects.
+# it stays a dev dep so the published wheel has no runtime dep on bragi —
+# the consumer container has bragi installed already.
 jinja2 = "^3.1"
 
 [tool.poetry.group.dev.dependencies]
-# bragi is the host. Git dep because bragi isn't on PyPI (the bragi name there
-# is held by an unrelated project per bragi's CONTEXT.md). Lives in dev so
-# the published wheel carries no direct-URL dep (PyPI rejects those).
-bragi = { git = "https://github.com/sgaduuw/bragi.git", tag = "v1.26.0" }
+# bragi ships on PyPI as `bragi-cms` from v1.27.0 (Pillow precedent:
+# distribution name differs from import name; `bragi` PyPI name is held by
+# Managarm). Import path is unchanged: `from bragi.api import ...`.
+bragi-cms = "^1.27"
 ruff = "^0.6"
 mypy = "^1.11"
 pytest = "^8.0"
