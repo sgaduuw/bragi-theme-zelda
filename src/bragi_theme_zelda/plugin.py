@@ -2,8 +2,9 @@
 
 Registers the Zelda (Link's Awakening) theme via `register_theme`,
 exposes `section_helper` + `page_ancestors` to Jinja templates via
-`register_template_globals`, and serves the pause-menu inventory
-homepage via `resolve_home` when the active site's theme is "zelda".
+`register_template_globals`, serves the pause-menu inventory homepage
+via `resolve_home` when the active site's theme is "zelda", and
+installs themed 404/500 error pages via `on_app_init`.
 """
 
 from __future__ import annotations
@@ -14,7 +15,7 @@ from typing import Any
 
 import jinja2
 from bragi.api import ThemeSpec, hookimpl
-from flask import render_template
+from flask import Flask, g, make_response, redirect, render_template, request
 from werkzeug.wrappers import Response
 
 from bragi_theme_zelda.section import DEFAULT_SECTION_LABELS
@@ -253,4 +254,100 @@ def _home_tiles_for(site: Any) -> list[dict[str, str]]:
         ]
 
 
-__all__ = ["register_theme", "register_template_globals", "resolve_home"]
+@hookimpl
+def on_app_init(app: Flask, registry: Any) -> None:
+    """Install themed 404/500 error pages on the delivery app.
+
+    Fires after bragi's core middleware (including `register_redirect_handler`)
+    has already installed its own `@app.errorhandler(404)` that emits a plain
+    "Not Found" text response as the redirect-miss fallback. Flask resolves
+    multiple `errorhandler` registrations for the same code by using the last
+    one registered; this hookimpl fires after core middleware, so our handler
+    wins.
+
+    For zelda-themed sites our handler replicates the redirect-chain logic
+    (it has to, because we replaced the handler that ran it) using
+    `pm.hook.resolve_redirect` from the plugin manager already stored on
+    `app.extensions`. For unresolved paths on zelda sites, we render the
+    ZZZZZ 404 template. For non-zelda sites or no-site-resolved requests, we
+    fall back to the plain-text "Not Found" so other sites sharing the
+    same delivery process are unaffected.
+
+    The 500 handler is unconditional: a server error on any site deserves a
+    page rather than a Werkzeug plaintext traceback, and the zelda 500
+    template (`GAME OVER / CONTINUE?`) is readable without zelda-specific
+    branding.
+    """
+    # Maximum hops mirrors bragi's own constant in core/middleware/redirects.py.
+    # Kept local to avoid importing from bragi.core (plugin boundary).
+    max_hops = 3
+
+    @app.errorhandler(404)
+    def _themed_404(_exc: object) -> Response:
+        from flask import current_app
+
+        site = g.get("site")
+        if site is None:
+            # No site resolved: plain fallback, same as bragi's core handler.
+            return make_response("Not Found", 404)
+
+        pm = current_app.extensions.get("plugin_manager")
+        if pm is not None:
+            # Run the redirect chain before deciding this is a real 404.
+            # Mirrors the logic in bragi's register_redirect_handler but
+            # stays within the plugin boundary (no bragi.core imports).
+            initial_path = request.path
+            current_path = initial_path
+            seen: set[str] = {initial_path}
+            first_status: int | None = None
+            final_target: str | None = None
+
+            for _ in range(max_hops):
+                result = pm.hook.resolve_redirect(site=site, path=current_path)
+                if result is None:
+                    break
+                if first_status is None:
+                    first_status = result.status_code
+                if result.status_code == 410:
+                    return make_response("Gone", 410)
+                final_target = result.target
+                if final_target in seen:
+                    current_app.logger.warning(
+                        "Redirect loop detected on %r (chain: %s)",
+                        initial_path,
+                        [*list(seen), final_target],
+                    )
+                    return make_response("Internal Server Error: redirect loop", 500)
+                seen.add(final_target)
+                if not final_target.startswith("/"):
+                    break
+                current_path = final_target
+
+            if final_target is not None:
+                assert first_status is not None
+                return redirect(final_target, code=first_status)
+
+        # No redirect matched. Render the themed 404 for zelda sites;
+        # fall back to plain text for any other theme.
+        if getattr(site, "theme", None) == "zelda":
+            body = render_template("delivery/errors/404.html", site=site)
+            return make_response(body, 404)
+
+        return make_response("Not Found", 404)
+
+    @app.errorhandler(500)
+    def _themed_500(_exc: object) -> Response:
+        site = g.get("site")
+        try:
+            body = render_template(
+                "delivery/errors/500.html",
+                site=site,
+            )
+        except Exception:
+            # If template rendering itself fails, fall back to plain text so
+            # the error page can't recursively 500.
+            return make_response("Internal Server Error", 500)
+        return make_response(body, 500)
+
+
+__all__ = ["on_app_init", "register_theme", "register_template_globals", "resolve_home"]

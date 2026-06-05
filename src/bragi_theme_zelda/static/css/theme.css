@@ -597,3 +597,75 @@ sup.footnote-ref a::after { content: "]"; }
 }
 
 .pinned-dots { display: none; /* no carousel; no dots */ }
+
+/* ===== Error pages: 404 ZZZZZ, 500 GAME OVER ===== */
+
+.error-page {
+  text-align: center;
+  padding: var(--space-xl) var(--space-md);
+}
+
+.error-page__scene {
+  position: relative;
+  display: inline-block;
+  margin: 0 auto var(--space-lg);
+}
+
+.error-page__scene img {
+  max-width: 100%;
+  height: auto;
+  border: 2px solid var(--gb-0);
+}
+
+.zzz-anim {
+  position: absolute;
+  top: 0;
+  left: 60%;
+  font-family: var(--font-pixel);
+  font-size: 0.75rem;
+  color: var(--gb-3);
+}
+
+.zzz-anim span {
+  display: inline-block;
+  animation: zzz-float 2.4s ease-in-out infinite;
+}
+
+.zzz-anim span:nth-child(2) { animation-delay: 0.3s; }
+.zzz-anim span:nth-child(3) { animation-delay: 0.6s; }
+.zzz-anim span:nth-child(4) { animation-delay: 0.9s; }
+.zzz-anim span:nth-child(5) { animation-delay: 1.2s; }
+
+@keyframes zzz-float {
+  0%   { transform: translateY(0)    rotate(0);    opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateY(-2rem) rotate(15deg); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zzz-anim span { animation: none; opacity: 1; }
+}
+
+.error-page__title {
+  font-family: var(--font-pixel);
+  font-size: 1.1rem;
+  margin: var(--space-md) 0;
+}
+
+.error-page__body {
+  margin: var(--space-md) 0 var(--space-lg);
+}
+
+.error-page__wake {
+  display: inline-block;
+  background: var(--gb-3);
+  color: var(--gb-0);
+  border: 2px solid var(--gb-0);
+  font-family: var(--font-pixel);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  padding: var(--space-sm) var(--space-md);
+  text-decoration: none;
+}
+
+.error-page__wake:hover { background: var(--gb-0); color: var(--gb-3); }

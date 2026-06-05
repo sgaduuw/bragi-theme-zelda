@@ -113,3 +113,11 @@ def test_hr_renders_in_page_body(client) -> None:
     resp = client.get("/links-awakening/tail-cave/", headers={"Host": "zelda.test"})
     assert resp.status_code == 200
     assert b"<hr" in resp.data
+
+
+def test_404_page_renders_zzz_scene(client) -> None:
+    resp = client.get("/no-such-page/", headers={"Host": "zelda.test"})
+    assert resp.status_code == 404
+    assert b'class="error-page error-404"' in resp.data
+    assert b"It's a bad omen." in resp.data or b"It&#39;s a bad omen." in resp.data
+    assert b"WAKE UP" in resp.data
