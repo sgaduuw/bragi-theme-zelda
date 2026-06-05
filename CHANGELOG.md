@@ -9,15 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `resolve_home` hookimpl now decorated `@hookimpl(tryfirst=True)` so the
-  pause-menu inventory grid renders at `/` even when the site has
-  `home_page_id` set. Previously, bragi's `bragi.contrib.page` plugin's
-  own `resolve_home` would win in the hook chain (entry-point load order
-  isn't deterministic for plain `@hookimpl` registrations), serving the
-  configured home page instead of the pause-menu. Surfaced during the
-  first zelda.eelcowesemann.nl cutover from Ghost: the importer set
-  `home_page_id` to a Ghost-imported `Home` page, and that page rendered
-  at `/` with the Zelda chrome but without the inventory grid.
+- `resolve_home` rewritten as a pluggy hookwrapper so the pause-menu
+  inventory grid always wins at `/` when `site.theme == "zelda"`,
+  regardless of whether the operator (or an importer) set
+  `site.home_page_id`. Surfaced during the first
+  zelda.eelcowesemann.nl cutover from Ghost: the Ghost importer set
+  `home_page_id` to an imported `Home` page, and bragi's
+  `bragi.contrib.page` plugin's own `@hookimpl(tryfirst=True)`
+  `resolve_home` was serving it at `/` with the Zelda chrome but
+  without the inventory grid. Two `tryfirst=True` impls compete on
+  plugin-discovery order (non-deterministic), so `tryfirst` on our
+  side wasn't enough; a hookwrapper that `force_result`s the
+  pause-menu response sidesteps the ordering question entirely.
   Regression test added to the integration suite.
 
 ## [0.1.3] - 2026-06-05
