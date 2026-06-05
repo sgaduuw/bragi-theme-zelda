@@ -19,6 +19,12 @@ First PyPI-published version. No runtime behaviour change from v0.1.0.
   `release: published` event. v0.1.0 remains git-tag-only; v0.1.1
   is the first PyPI-published version. CONTEXT.md "Distribution"
   section added; CLAUDE.md "Distribution" section updated.
+- Move `bragi` git dep from runtime to dev dependencies. PyPI rejects
+  packages with direct-URL (git/VCS) dependencies in their published
+  metadata; moving it to dev avoids the rejection while preserving the
+  dep for local development and the test suite. At runtime the theme is
+  always installed inside bragi's own environment where bragi is already
+  present as the host app.
 
 ## [0.1.0] - 2026-06-05
 
