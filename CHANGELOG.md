@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-06-05
+
 ### Added
 
 - `.github/dependabot.yml` watching the `docker/` Dockerfiles for
