@@ -88,11 +88,60 @@
     });
   }
 
+  // ===== PUSH START splash =====
+
+  function shouldShowSplash() {
+    try { return !sessionStorage.getItem("zelda-splash-seen"); }
+    catch (e) { return false; }
+  }
+  function markSplashSeen() {
+    try { sessionStorage.setItem("zelda-splash-seen", "1"); } catch (e) {}
+  }
+
+  function showSplash() {
+    var splash = document.createElement("div");
+    splash.className = "push-start-splash";
+    splash.setAttribute("role", "dialog");
+    splash.setAttribute("aria-labelledby", "splash-title");
+    splash.innerHTML =
+      '<div class="push-start-splash__inner">' +
+      '<h2 id="splash-title" class="push-start-splash__brand">ZELDA.NL</h2>' +
+      '<p class="push-start-splash__cta">PUSH START</p>' +
+      '<button class="push-start-splash__skip" type="button">Skip</button>' +
+      '</div>';
+    document.body.appendChild(splash);
+
+    var skip = splash.querySelector(".push-start-splash__skip");
+    skip.focus();
+
+    function dismiss() {
+      splash.classList.add("is-dismissed");
+      window.setTimeout(function () { splash.remove(); }, 350);
+      markSplashSeen();
+      document.removeEventListener("keydown", onKey, true);
+    }
+    function onKey(e) {
+      if (e.key === "Escape" || e.key === "Enter" || e.key === " ") dismiss();
+    }
+    splash.addEventListener("click", dismiss);
+    document.addEventListener("keydown", onKey, true);
+  }
+
+  function initSplash() {
+    if (!shouldShowSplash()) return;
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", showSplash);
+    } else {
+      showSplash();
+    }
+  }
+
   // ===== Init =====
 
   function init() {
     initThemeToggle();
     initRupeeCounter();
+    initSplash();
   }
 
   if (document.readyState === "loading") {
