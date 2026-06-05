@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-05
+
+First PyPI-published version. No runtime behaviour change from v0.1.0.
+
+### Changed
+
+- Distribution: PyPI publication via Trusted Publishers (OIDC) is now
+  the canonical install path. The GitHub Release workflow at
+  `.github/workflows/release.yml` publishes sdist + wheel on every
+  `release: published` event. v0.1.0 remains git-tag-only; v0.1.1
+  is the first PyPI-published version. CONTEXT.md "Distribution"
+  section added; CLAUDE.md "Distribution" section updated.
+
 ## [0.1.0] - 2026-06-05
 
 Initial release. Ships the full LA-game-UI-cosplay theme designed in the
