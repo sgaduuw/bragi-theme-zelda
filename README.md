@@ -27,6 +27,15 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
+## Status: v0.1.0
+
+v0.1.0 ships the full visual system, MAP sidebar, chrome, pause-menu home, ZZZZZ 404, all
+four cosplay JS motifs, and subsetted woff2 fonts (Press Start 2P, Inter Regular + SemiBold,
+JetBrains Mono). **Character portraits, item tiles, the heart-container, and the 404 scene art
+are placeholder PNGs** (Pillow-generated text-on-coloured-square). The CSS / JS / templates
+reference the correct sprite filenames, so v0.1.1 swaps in real art via per-file PNG
+replacement with no code changes.
+
 ## Asset provenance
 
 Fonts and sprites are documented row-by-row in [ASSETS.md](ASSETS.md). No ROM-ripped
