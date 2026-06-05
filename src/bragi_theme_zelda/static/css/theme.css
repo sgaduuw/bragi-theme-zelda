@@ -378,3 +378,85 @@ hr {
 @media (prefers-reduced-motion: reduce) {
   hr { /* no animation to begin with; placeholder for any future bounce */ }
 }
+
+/* ===== Body element styles ===== */
+
+p, ul, ol, blockquote, table { margin: var(--space-md) 0; }
+
+h4 { font-family: var(--font-body); font-weight: 600; font-size: 1.05rem; margin-top: var(--space-lg); }
+h5 { font-family: var(--font-body); font-weight: 600; font-size: 0.95rem; margin-top: var(--space-md); }
+h6 { font-family: var(--font-body); font-weight: 600; font-size: 0.85rem; font-style: italic; margin-top: var(--space-md); }
+
+ul, ol { padding-left: 1.5rem; }
+li + li { margin-top: 0.25rem; }
+
+blockquote {
+  border-left: 4px solid var(--gb-1);
+  background: var(--gb-2);
+  margin-left: 0;
+  padding: var(--space-sm) var(--space-md);
+  color: var(--gb-0);
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+th, td {
+  border: 1px solid var(--gb-1);
+  padding: var(--space-xs) var(--space-sm);
+  text-align: left;
+}
+th { background: var(--gb-1); color: var(--gb-3); font-family: var(--font-pixel); font-size: 0.55rem; letter-spacing: 0.05em; }
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--gb-2);
+  padding: 0.05rem 0.25rem;
+  border-radius: 2px;
+}
+
+pre {
+  font-family: var(--font-mono);
+  background: var(--gb-1);
+  color: var(--gb-3);
+  padding: var(--space-md);
+  border: 2px solid var(--gb-0);
+  border-radius: 3px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  /* Pygments tokens stay legible against the dark frame. */
+}
+pre code { background: transparent; padding: 0; }
+
+/* Footnotes (markdown-it-footnote): match bragi's default chrome but on
+   the GB palette. */
+section.footnotes {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--gb-1);
+  font-size: 0.9em;
+  color: var(--gb-1);
+}
+section.footnotes ol { padding-left: 1.25rem; }
+sup.footnote-ref { font-size: 0.75em; line-height: 0; vertical-align: super; }
+sup.footnote-ref a { text-decoration: none; }
+sup.footnote-ref a::before { content: "["; }
+sup.footnote-ref a::after { content: "]"; }
+
+/* TOC wrapper (bragi's long-post TOC). */
+.toc-wrapper {
+  background: var(--gb-2);
+  border: 1px solid var(--gb-1);
+  border-radius: 3px;
+  padding: var(--space-sm) var(--space-md);
+  margin: var(--space-md) 0;
+}
+.toc-wrapper h2 {
+  font-family: var(--font-pixel);
+  font-size: 0.55rem;
+  margin: 0 0 var(--space-xs);
+}
