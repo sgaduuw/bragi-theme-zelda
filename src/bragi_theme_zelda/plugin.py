@@ -277,6 +277,12 @@ def on_app_init(app: Flask, registry: Any) -> None:
     page rather than a Werkzeug plaintext traceback, and the zelda 500
     template (`GAME OVER / CONTINUE?`) is readable without zelda-specific
     branding.
+
+    TODO: replace this entire workaround once bragi exposes a
+    `register_error_handlers(app)` hookspec. The redirect-chain replication
+    below is a copy of bragi's canonical handler and will drift if bragi's
+    upstream changes; the workaround exists only because there is no clean
+    way to install a themed errorhandler without it today.
     """
     # Maximum hops mirrors bragi's own constant in core/middleware/redirects.py.
     # Kept local to avoid importing from bragi.core (plugin boundary).
