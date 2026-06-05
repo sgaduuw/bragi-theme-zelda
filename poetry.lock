@@ -144,14 +144,16 @@ files = [
 ]
 
 [[package]]
-name = "bragi"
-version = "1.26.0"
+name = "bragi-cms"
+version = "1.27.1"
 description = "Multisite CMS with htmx, plugins, and SEO baked in."
 optional = false
-python-versions = ">=3.12,<4"
+python-versions = "<4,>=3.12"
 groups = ["dev"]
-files = []
-develop = false
+files = [
+    {file = "bragi_cms-1.27.1-py3-none-any.whl", hash = "sha256:ba278a43b781a8b7d3c60486f7cf810bd8fae4c55658ceb2d5def21fc246a8f1"},
+    {file = "bragi_cms-1.27.1.tar.gz", hash = "sha256:477659dcdcd227950cb6f1a8e032fff06c80fab42ff1b53e6504dcc64bdd514a"},
+]
 
 [package.dependencies]
 alembic = ">=1.13,<2.0"
@@ -172,12 +174,6 @@ pygments = ">=2.18,<3.0"
 pyyaml = ">=6.0.3,<7.0.0"
 requests = ">=2.34.1,<3.0.0"
 sqlalchemy = ">=2.0,<3.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/sgaduuw/bragi.git"
-reference = "v1.26.0"
-resolved_reference = "5edd6b38b5dbe8b9e4b2f510b6c34969e228312e"
 
 [[package]]
 name = "brotli"
@@ -2108,4 +2104,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.14"
-content-hash = "afee0ce6f3040cb686a97369a5daa6a301543a80456fcf1f04ac9d99fcc27fef"
+content-hash = "05ada02a09f4c735891b1779b7673d87d973c2c63423a6dd0509c2127a619f55"
