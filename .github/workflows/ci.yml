@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main, "release/**", "hotfix/**"]
+  pull_request:
+    branches: [develop, main]
+
+# Minimum permissions: CI runs untrusted PR code, so the workflow
+# token must not carry write permissions by default.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          # 3.14 matches pyproject.toml's `^3.14` constraint and the
+          # local runtime. GHA ships stable 3.14 pre-built images.
+          python-version: "3.14"
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Lint
+        run: poetry run ruff check src/ tests/
+
+      - name: Format check
+        run: poetry run ruff format --check src/ tests/
+
+      - name: Type check
+        run: poetry run mypy src/
+
+      - name: Unit + contrib tests
+        run: poetry run pytest tests/unit/ tests/contrib/ -v
+
+      - name: Integration tests
+        run: poetry run pytest tests/integration/ -v

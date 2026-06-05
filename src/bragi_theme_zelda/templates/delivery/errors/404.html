@@ -1,0 +1,17 @@
+{% extends "delivery/base.html" %}
+{% block title %}...zzZzzz... (404){% endblock %}
+{% block content %}
+<section class="error-page error-404" aria-labelledby="err-title">
+  <div class="error-page__scene">
+    <img src="/theme/zelda/static/sprites/ui/marin_house_night.png"
+         alt="Marin's house at night"
+         class="pixelated">
+    <div class="zzz-anim" aria-hidden="true">
+      <span>Z</span><span>z</span><span>Z</span><span>z</span><span>Z</span>
+    </div>
+  </div>
+  <h1 id="err-title" class="error-page__title">It's a bad omen.</h1>
+  <p class="error-page__body">Try wakey-wakey to the homepage.</p>
+  <a class="error-page__wake" href="/">WAKE UP</a>
+</section>
+{% endblock %}

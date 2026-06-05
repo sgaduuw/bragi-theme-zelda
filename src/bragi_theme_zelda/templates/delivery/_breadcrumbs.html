@@ -1,0 +1,25 @@
+{# Breadcrumb trail from site root down to current page.
+   Walks page.parent_id via the page_ancestors Jinja global (SQL-backed,
+   bragi's Page model has no .parent attribute). Each crumb's URL is
+   produced by url_for_page. ► separators between items. #}
+{% if page %}
+  {% set crumbs = page_ancestors(page) %}
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      {% if site %}
+        <li><a href="/">{{ site.title }}</a></li>
+        <li class="sep" aria-hidden="true">&#x25ba;</li>
+      {% endif %}
+      {% for crumb in crumbs %}
+        <li>
+          {% if loop.last %}
+            <span aria-current="page">{{ crumb.title }}</span>
+          {% else %}
+            <a href="{{ url_for_page(crumb) }}">{{ crumb.title }}</a>
+          {% endif %}
+        </li>
+        {% if not loop.last %}<li class="sep" aria-hidden="true">&#x25ba;</li>{% endif %}
+      {% endfor %}
+    </ol>
+  </nav>
+{% endif %}

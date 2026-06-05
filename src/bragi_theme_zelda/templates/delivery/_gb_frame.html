@@ -1,0 +1,14 @@
+{# Macro wrapper used by page templates that render images explicitly.
+   Most body images flow through pictureify; the post-processor that
+   wraps pictureify's output ships in a later release. For v0.1.0 this
+   macro is the manual form. #}
+{% macro gb_frame(src, alt="", caption="") %}
+<figure class="gb-frame">
+  {% if caption or alt %}
+  <span class="gb-frame__label">{{ (caption or alt) | upper }}</span>
+  {% endif %}
+  <div class="gb-frame__inner">
+    <img src="{{ src }}" alt="{{ alt }}">
+  </div>
+</figure>
+{% endmacro %}
