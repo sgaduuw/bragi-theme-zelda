@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-06-06
+
+### Changed
+
+- Pause-menu inventory grid (`pause_menu.html` + `theme.css`): drop the
+  2px border on `.pause-menu__sprite`. It matched the tile frame's own
+  2px border in colour and width, reading as a double-walled nested
+  frame around an empty sprite area. The sprite's lighter `gb-3` fill
+  against the tile's `gb-2` background carries enough contrast on its
+  own.
+- `.pause-menu__label` font-size bumped from `0.55rem` to `0.625rem`
+  (10px exact at the default 16px root). Press Start 2P renders crisply
+  at integer pixel sizes; `0.55rem` (~8.8px) subpixel-blurred against
+  the tile background.
+- `pause_menu.html` title decoration swapped from `- PAUSE -` to
+  `<< PAUSE >>`. ASCII hyphens read as a dev placeholder; chevrons echo
+  selection arrows from SNES-era menus and stay inside Press Start 2P's
+  basic-Latin subset.
+
+Sprite finalisation (replacing the placeholder `LA PEA` / `KOKIRI` /
+`OWL ST` PNGs with real pixel-art) is unchanged in this release; it
+remains the bigger deferred surface tracked in
+`_claude/MEMORY.md` 2026-06-05.
+
 ## [0.1.5] - 2026-06-06
 
 ### Changed
