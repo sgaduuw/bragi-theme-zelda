@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-06-06
+
+### Changed
+
+- Bragi base image bumped from v1.27.3 to v1.27.6 in
+  `docker/admin.Dockerfile` and `docker/delivery.Dockerfile`. Brings
+  the Ghost-importer `__GHOST_URL__` placeholder substitution fix
+  (bragi#376), which restores internal body links on Ghost-imported
+  posts and pages on the zelda site. Also picks up bragi's PyPI
+  propagation gating fix in `release.yml` (probe with `pip download`
+  instead of curl against the JSON endpoint), which only affects
+  bragi's own release pipeline but moves the theme onto a base with a
+  more reliable release cycle.
+
+### Added
+
+- `.github/workflows/bragi-released.yml`: receiver listening for
+  `repository_dispatch` of type `bragi-released`, fired by bragi's
+  `release.yml` `notify-themes` matrix job. On dispatch, the workflow
+  reads the current `ARG BRAGI_VERSION=` from
+  `docker/admin.Dockerfile`, short-circuits if the new version equals
+  the current pin, otherwise `sed`s both Dockerfiles to the new
+  version and opens a PR via `peter-evans/create-pull-request@v7` on
+  branch `bump-bragi-v<new>`. Major-version crossings gain the
+  `breaking-base-bump` label. Detection latency drops from ~24h
+  (Dependabot's daily poll) to seconds. Dependabot stays in place as
+  the backstop in case the dispatch silently fails.
+
 ## [0.1.4] - 2026-06-05
 
 ### Added
