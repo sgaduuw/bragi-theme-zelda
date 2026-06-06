@@ -1,0 +1,71 @@
+name: Bump bragi base on bragi release
+
+# Fired by bragi's notify-themes job (release.yml) via repository_dispatch.
+# Dependabot remains the daily backstop in case this path silently fails;
+# see _claude/CONTEXT.md "Container deploy" + MEMORY.md for context.
+
+on:
+  repository_dispatch:
+    types: [bragi-released]
+
+jobs:
+  open-bump-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Compute current and new versions
+        id: v
+        run: |
+          NEW="${{ github.event.client_payload.version }}"
+          if [ -z "$NEW" ]; then
+            echo "client_payload.version is empty; aborting" >&2
+            exit 1
+          fi
+          CUR="$(grep -E '^ARG BRAGI_VERSION=' docker/admin.Dockerfile \
+                 | head -1 | cut -d= -f2)"
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          echo "cur=$CUR" >> "$GITHUB_OUTPUT"
+          if [ "$NEW" = "$CUR" ]; then
+            echo "skip=samever" >> "$GITHUB_OUTPUT"
+          fi
+          NEW_MAJOR="${NEW%%.*}"
+          CUR_MAJOR="${CUR%%.*}"
+          if [ "$NEW_MAJOR" != "$CUR_MAJOR" ]; then
+            echo "major=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Short-circuit if already pinned
+        if: steps.v.outputs.skip == 'samever'
+        run: |
+          echo "Already pinned at ${{ steps.v.outputs.cur }}; no PR needed."
+
+      - name: Bump ARG BRAGI_VERSION in both Dockerfiles
+        if: steps.v.outputs.skip != 'samever'
+        run: |
+          sed -i \
+            "s/^ARG BRAGI_VERSION=.*/ARG BRAGI_VERSION=${{ steps.v.outputs.new }}/" \
+            docker/admin.Dockerfile docker/delivery.Dockerfile
+
+      - name: Open PR
+        if: steps.v.outputs.skip != 'samever'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: bump-bragi-v${{ steps.v.outputs.new }}
+          title: "deps(docker): bump bragi base to v${{ steps.v.outputs.new }}"
+          body: |
+            Dispatched by bragi's `notify-themes` job on release v${{ steps.v.outputs.new }}.
+
+            Previous: `${{ steps.v.outputs.cur }}` → New: `${{ steps.v.outputs.new }}`.
+
+            Review, merge, then cut a theme PATCH release to publish the new variant image. Major bumps wear the `breaking-base-bump` label and need a deliberate read of the bragi changelog before merging.
+          labels: |
+            dependencies
+            docker
+            ${{ steps.v.outputs.major == '1' && 'breaking-base-bump' || '' }}
+          commit-message: "deps(docker): bump bragi base to v${{ steps.v.outputs.new }}"
+          sign-commits: false
