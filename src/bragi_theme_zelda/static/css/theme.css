@@ -545,14 +545,20 @@ sup.footnote-ref a::after { content: "]"; }
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  border: 2px solid var(--gb-0);
+  /* No border here: the tile frame already provides the outer border,
+     and a matching 2px border on the sprite reads as a double-walled
+     nested frame. The sprite's lighter gb-3 fill against the tile's
+     gb-2 background is enough contrast on its own. */
   image-rendering: pixelated;
 }
 
 .pause-menu__label {
   display: block;
   font-family: var(--font-pixel);
-  font-size: 0.55rem;
+  /* 0.625rem = 10px exact at the default 16px root. Press Start 2P
+     renders crisply at integer pixel sizes; 0.55rem (~8.8px) subpixel-
+     blurred against the gb-2 tile background. */
+  font-size: 0.625rem;
   letter-spacing: 0.05em;
 }
 
