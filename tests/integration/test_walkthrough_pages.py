@@ -108,7 +108,9 @@ def test_pause_menu_home_renders(client) -> None:
     resp = client.get("/", headers={"Host": "zelda.test"})
     assert resp.status_code == 200
     assert b'class="pause-menu"' in resp.data
-    assert b"- PAUSE -" in resp.data
+    # Assert on bare "PAUSE" so the test stays valid through decoration
+    # tweaks (e.g. swapping the chevrons / dashes around the title).
+    assert b"PAUSE" in resp.data
     # Fallback list contains links-awakening (LA pearl tile).
     assert b"links-awakening" in resp.data
 
@@ -143,7 +145,7 @@ def test_pause_menu_home_wins_when_site_has_home_page_id(client, db_session) -> 
     resp = client.get("/", headers={"Host": "zelda.test"})
     assert resp.status_code == 200
     assert b'class="pause-menu"' in resp.data
-    assert b"- PAUSE -" in resp.data
+    assert b"PAUSE" in resp.data
     assert b"This Ghost-imported Home page must NOT render at /." not in resp.data
 
 

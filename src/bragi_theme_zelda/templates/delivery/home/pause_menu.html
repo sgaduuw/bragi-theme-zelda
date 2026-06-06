@@ -2,7 +2,10 @@
 {% block title %}{{ site.title }}{% endblock %}
 {% block content %}
 <section class="pause-menu" aria-label="Pause menu">
-  <h1 class="pause-menu__title">- PAUSE -</h1>
+  {# Chevrons echo JRPG menu-selection arrows. ASCII-safe so they stay
+     inside Press Start 2P's basic-Latin subset; hyphens read as a dev
+     placeholder. #}
+  <h1 class="pause-menu__title">&lt;&lt; PAUSE &gt;&gt;</h1>
   <ul class="pause-menu__grid">
     {% for tile in tiles %}
       <li class="pause-menu__tile">
