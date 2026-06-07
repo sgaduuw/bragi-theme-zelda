@@ -1,18 +1,21 @@
 """In-process LRU wrapper around the extraction pipeline.
 
-The cache key is (site_slug, game, palette, sprite_name). Per-process;
+The cache key is (rom_path, mtime_ns, game, palette, sprite_name). Per-process;
 multi-worker deployments do not coordinate. Cost of a miss is sub-
 millisecond and PNG bytes are small (~2 KB), so duplicating the cache
 across workers is cheap. Restart -> cache empties; browsers continue
 serving from their own HTTP cache.
 
-Invalidation is the writer's responsibility: the cache is keyed by
-ROM path, not by ROM content. After every ``store_rom`` /
-``rom_path_for_site(...).unlink()`` (i.e. every operator-initiated
-upload, replace, or delete via the admin Blueprint), the caller MUST
-call ``_cached_png.cache_clear()`` to avoid serving stale bytes from
-the previous ROM at the same path. See ``admin/routes.py`` for the
-production wiring.
+Invalidation is self-acting on ROM swap: the cache key includes the
+file's ``mtime_ns``, and ``store_rom``'s atomic write-then-rename
+bumps mtime, so the next request after an upload misses the LRU and
+recomputes against the new bytes -- across all worker processes, not
+just the one that handled the admin POST.
+
+``_cache_clear()`` is still called by the admin Blueprint as defense
+in depth (cheap, and useful for the delete-then-re-upload-identical
+case where mtime alone wouldn't help). See ``admin/routes.py`` for
+the production wiring.
 
 The fixture-tile entry ``_fixture_tile`` is exposed only when the
 test data module is importable (it lives in ``tests/data/``). In
@@ -24,6 +27,7 @@ from __future__ import annotations
 
 import functools
 import io
+import os
 from pathlib import Path
 
 from PIL import Image
@@ -31,7 +35,6 @@ from PIL import Image
 from bragi_theme_zelda.rom.decoder import SpriteRef, render_sprite
 from bragi_theme_zelda.rom.manifest_la import SPRITES_LA
 from bragi_theme_zelda.rom.palettes import PALETTES, Palette
-from bragi_theme_zelda.rom.upload import rom_path_for_site
 
 MANIFESTS: dict[str, dict[str, SpriteRef]] = {"la": SPRITES_LA}
 
@@ -57,9 +60,18 @@ def _resolve_sprite_ref(game: str, sprite_name: str) -> SpriteRef:
 
 @functools.lru_cache(maxsize=32)
 def _cached_png(
-    rom_path_str: str, game: str, palette_name: str, sprite_name: str
+    rom_path_str: str,
+    mtime_ns: int,
+    game: str,
+    palette_name: str,
+    sprite_name: str,
 ) -> bytes:
-    """Cache key is a string-tuple so it hashes cleanly through lru_cache."""
+    """Cache key is a string-tuple so it hashes cleanly through lru_cache.
+
+    ``mtime_ns`` is part of the key so an atomic ROM swap at the same
+    path (``os.replace`` bumps mtime) produces a fresh cache entry on
+    the next request, even in workers that didn't handle the upload.
+    """
     rom = Path(rom_path_str).read_bytes()
     ref = _resolve_sprite_ref(game, sprite_name)
     palette: Palette = PALETTES[palette_name]
@@ -84,18 +96,19 @@ def get_sprite_png(
     """
     if palette not in PALETTES:
         raise KeyError(f"unknown palette: {palette!r}")
-    # Verify the ROM file exists before checking the LRU (a different
-    # ROM at the same path would produce wrong results from a stale entry).
-    rom_path = read_rom_path(attachments_root, site_slug, game)
-    return _cached_png(str(rom_path), game, palette, sprite_name)
+    rom_path, mtime_ns = _stat_rom(attachments_root, site_slug, game)
+    return _cached_png(str(rom_path), mtime_ns, game, palette, sprite_name)
 
 
-def read_rom_path(attachments_root: Path, site_slug: str, game: str) -> Path:
-    """Return the rom path, raising FileNotFoundError if it does not exist."""
+def _stat_rom(attachments_root: Path, site_slug: str, game: str) -> tuple[Path, int]:
+    """Return (path, mtime_ns), raising FileNotFoundError if the file is missing.
+
+    Single syscall, replaces the prior exists-check + later stat split.
+    """
+    from bragi_theme_zelda.rom.upload import rom_path_for_site
+
     path = rom_path_for_site(attachments_root, site_slug, game)
-    if not path.exists():
-        raise FileNotFoundError(str(path))
-    return path
+    return path, os.stat(path).st_mtime_ns  # raises FileNotFoundError if absent
 
 
 def _cache_clear() -> None:

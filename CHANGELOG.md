@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- ROM extraction cache key now includes the file's `mtime_ns`, so an
+  atomic ROM swap at the same path (`store_rom`'s `os.replace`) is
+  visible to every worker process on the next request -- not just the
+  worker that handled the admin POST. Closes #25.
+
 ## [0.2.0] - 2026-06-07
 
 ### Added
