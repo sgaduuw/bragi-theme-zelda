@@ -145,14 +145,14 @@ files = [
 
 [[package]]
 name = "bragi-cms"
-version = "1.27.1"
+version = "1.28.0"
 description = "Multisite CMS with htmx, plugins, and SEO baked in."
 optional = false
 python-versions = "<4,>=3.12"
 groups = ["dev"]
 files = [
-    {file = "bragi_cms-1.27.1-py3-none-any.whl", hash = "sha256:ba278a43b781a8b7d3c60486f7cf810bd8fae4c55658ceb2d5def21fc246a8f1"},
-    {file = "bragi_cms-1.27.1.tar.gz", hash = "sha256:477659dcdcd227950cb6f1a8e032fff06c80fab42ff1b53e6504dcc64bdd514a"},
+    {file = "bragi_cms-1.28.0-py3-none-any.whl", hash = "sha256:38e8f0982ca8ea28c6d0e25e6f7145391d0656ed03a90dd92b507ef7acd29aee"},
+    {file = "bragi_cms-1.28.0.tar.gz", hash = "sha256:4dd7faa161ae7f7d6eec1b2929c83322feb98f73c164a61fb2aefe8c624012a6"},
 ]
 
 [package.dependencies]
@@ -2104,4 +2104,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.14"
-content-hash = "8cd3ad363e20d890f5bc46c8fc1ec84f6850ed35497b1eb1b500c8e90ab5ee6e"
+content-hash = "39db9d1397ed4a910e041d9b94d7c3943a4ffb860a476528b3c16fc218a0b2e4"
