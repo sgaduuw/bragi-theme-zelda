@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Removed
+
+- Delivery-side ROM upload nudge banner (`_rom_banner.html` + `.rom-banner*` CSS).
+  It was gated on a `current_user_is_editor` Jinja variable that bragi does not
+  expose to delivery templates: bragi's admin and delivery apps run on separate
+  hostnames with separately-scoped session cookies (per bragi `_claude/CONTEXT.md`
+  "Admin on its own host"), so the delivery render has no auth context and the
+  banner could never render. The intended admin-side nudge will land via a new
+  bragi hookspec; see brainstorming notes in `_claude/specs/`.
+
 ## [0.2.1] - 2026-06-07
 
 ### Fixed
