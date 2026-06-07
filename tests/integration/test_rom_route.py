@@ -20,16 +20,20 @@ def clear_cache() -> None:
 
 
 @pytest.fixture
-def app(tmp_path: Path) -> Flask:
+def app(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Flask:
     """Minimal Flask app with the ROM blueprint mounted.
 
     Avoids spinning up the full bragi delivery app for fast tests.
-    The blueprint resolves `attachments_root` from a config key so
-    the test fixture can point it at tmp_path.
+    The route reads bragi.settings.settings.attachments_root for the
+    storage path; monkeypatch it to tmp_path so each test gets a
+    clean attachments dir.
     """
+    from bragi.settings import settings as bragi_settings
+
+    monkeypatch.setattr(bragi_settings, "attachments_root", str(tmp_path))
+
     flask_app = Flask(__name__)
     flask_app.config["TESTING"] = True
-    flask_app.config["BRAGI_ATTACHMENTS_ROOT"] = str(tmp_path)
     # Override site-slug resolution to a fixed value for these tests.
     flask_app.config["ZELDA_TEST_SITE_SLUG"] = "testsite"
     flask_app.register_blueprint(build_rom_blueprint())
