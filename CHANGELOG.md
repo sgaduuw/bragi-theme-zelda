@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.5] - 2026-06-07
+
+### Fixed
+
+- Delivery `/zelda/rom/<game>/<palette>/<sprite>.png` route now reads
+  the attachments root from `bragi.settings.settings.attachments_root`
+  instead of `current_app.config["BRAGI_ATTACHMENTS_ROOT"]`. Same fix
+  as the admin handler got in v0.4.1 — the delivery half of the
+  codebase was missed during that cycle, so post-deploy the previews
+  hit the right host but the handler 404'd on `_attachments_root()`.
+  Closes #59.
+
 ## [0.4.4] - 2026-06-07
 
 ### Fixed
