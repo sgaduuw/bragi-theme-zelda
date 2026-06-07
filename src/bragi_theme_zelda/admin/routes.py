@@ -13,10 +13,10 @@ from pathlib import Path
 from typing import Any
 
 from bragi.api import invalidate_admin_notices
+from bragi.settings import settings
 from flask import (
     Blueprint,
     abort,
-    current_app,
     flash,
     redirect,
     render_template,
@@ -114,7 +114,7 @@ def build_admin_blueprint(
             flash(f"Rejected: {exc}", "error")
             return redirect(url_for(".upload", site_slug=site.slug))
 
-        attachments_root = Path(current_app.config["BRAGI_ATTACHMENTS_ROOT"])
+        attachments_root = Path(settings.attachments_root)
         try:
             sha = store_rom(
                 data,
@@ -139,7 +139,7 @@ def build_admin_blueprint(
         return redirect(url_for(".upload", site_slug=site.slug))
 
     def _handle_delete(site: Any):  # type: ignore[no-untyped-def]
-        attachments_root = Path(current_app.config["BRAGI_ATTACHMENTS_ROOT"])
+        attachments_root = Path(settings.attachments_root)
         path = rom_path_for_site(attachments_root, site.slug, "la")
         if path.exists():
             path.unlink()
