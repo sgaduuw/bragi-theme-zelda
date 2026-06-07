@@ -4,24 +4,22 @@ URL shape::
 
     /zelda/rom/<game>/<palette>/<sprite_name>.png
 
-The ``rom`` segment is intentional and visible: it tells anyone
-reading the URL that the response is extracted live from the
-operator-uploaded ROM, not pre-shipped art.
+Response shape::
 
-Configuration the Flask app must provide:
+    HTTP/1.1 200 OK
+    Content-Type: image/png
+    ETag: "sha256:<hex>"
+    Cache-Control: public, max-age=86400, immutable
 
-- ``app.config["BRAGI_ATTACHMENTS_ROOT"]`` -- absolute path string to
-  the attachments root (where ROMs live under ``zelda-roms/<site>/``).
-- ``app.config["ZELDA_TEST_SITE_SLUG"]`` (test only) or production
-  resolution via ``g.site.slug`` (Flask global set by bragi during
-  request resolution).
+ETag matches via ``If-None-Match`` return 304.
 """
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
-from flask import Blueprint, Response, abort, current_app, g
+from flask import Blueprint, Response, abort, current_app, g, request
 
 from bragi_theme_zelda.rom import get_sprite_png
 from bragi_theme_zelda.rom.cache import MANIFESTS
@@ -30,14 +28,10 @@ from bragi_theme_zelda.rom.palettes import PALETTES
 VALID_GAMES = frozenset(MANIFESTS.keys())
 VALID_PALETTES = frozenset(PALETTES.keys())
 
+CACHE_CONTROL = "public, max-age=86400, immutable"
+
 
 def _resolve_site_slug() -> str:
-    """Resolve current site slug.
-
-    Production: bragi sets ``g.site`` during request resolution.
-    Tests: ``ZELDA_TEST_SITE_SLUG`` overrides for unit testing the
-    blueprint without standing up a full bragi app.
-    """
     override = current_app.config.get("ZELDA_TEST_SITE_SLUG")
     if override:
         return str(override)
@@ -55,12 +49,10 @@ def _attachments_root() -> Path:
 
 
 def build_rom_blueprint() -> Blueprint:
-    """Construct the Flask blueprint serving ROM-extracted sprites."""
     bp = Blueprint("zelda_rom", __name__, url_prefix="/zelda/rom")
 
     @bp.route("/<game>/<palette>/<sprite_name>.png")
     def sprite(game: str, palette: str, sprite_name: str):  # type: ignore[no-untyped-def]
-        # Validate enum-shaped path segments before any I/O.
         if game not in VALID_GAMES:
             abort(404)
         if palette not in VALID_PALETTES:
@@ -80,6 +72,18 @@ def build_rom_blueprint() -> Blueprint:
         except (KeyError, OSError, IndexError):
             abort(404)
 
-        return Response(png_bytes, mimetype="image/png")
+        etag = f'"sha256:{hashlib.sha256(png_bytes).hexdigest()}"'
+
+        # Conditional GET: honour If-None-Match.
+        if request.if_none_match.contains(etag.strip('"')):
+            resp = Response(status=304)
+            resp.headers["ETag"] = etag
+            resp.headers["Cache-Control"] = CACHE_CONTROL
+            return resp
+
+        resp = Response(png_bytes, mimetype="image/png")
+        resp.headers["ETag"] = etag
+        resp.headers["Cache-Control"] = CACHE_CONTROL
+        return resp
 
     return bp
