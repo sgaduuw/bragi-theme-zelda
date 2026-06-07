@@ -8,7 +8,7 @@
   {% set _label = label or _labels.get(speaker, speaker | upper) %}
   <aside class="textbox textbox--{{ speaker }}" role="note">
     <div class="textbox__portrait" aria-hidden="true"
-         style="background-image: url('/theme/zelda/static/sprites/portraits/{{ speaker }}.png');"></div>
+         style="background-image: url('{{ rom_sprite_url(speaker) }}');"></div>
     <div class="textbox__body">
       <p class="textbox__speaker">{{ _label }}:</p>
       {{ caller() }}
