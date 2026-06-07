@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import io
 from pathlib import Path
+from typing import Any
 
 import jinja2
 import pytest
@@ -27,9 +28,6 @@ class StubSite:
         self.slug = slug
         self.id = 1
         self.extra_settings: dict[str, str] = {}
-
-    def save(self) -> None:
-        """Mock save (test-only — no actual DB persistence)."""
 
 
 @pytest.fixture(autouse=True)
@@ -54,6 +52,25 @@ def app(
     from bragi.settings import settings as bragi_settings
 
     monkeypatch.setattr(bragi_settings, "attachments_root", str(tmp_path))
+
+    # Theme's _persist_site_extra_setting opens a real bragi SessionLocal
+    # to write to the Site.extra_settings JSON column. Stub it to mutate
+    # the StubSite directly so tests can assert on site.extra_settings
+    # without standing up a real bragi DB. The real-admin-app fixture
+    # path (issue #43) will exercise the production code instead.
+    from bragi_theme_zelda.admin import routes as zelda_admin_routes
+
+    def _stub_persist(site_obj: Any, key: str, value: str | None) -> None:
+        if value is None:
+            site_obj.extra_settings.pop(key, None)
+        else:
+            site_obj.extra_settings[key] = value
+
+    monkeypatch.setattr(
+        zelda_admin_routes,
+        "_persist_site_extra_setting",
+        _stub_persist,
+    )
 
     flask_app = Flask(__name__, template_folder=None)
     flask_app.config["TESTING"] = True
