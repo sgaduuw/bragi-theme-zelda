@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.6] - 2026-06-08
+
+### Changed
+
+- Real ROM offsets for all seven sprites in `manifest_la.py`, replacing
+  the placeholder values that have shipped since v0.2.0. Offsets sourced
+  from [zladx/LADX-Disassembly](https://github.com/zladx/LADX-Disassembly)
+  with cross-verification against
+  [jverkoey/windfish](https://github.com/jverkoey/windfish)'s original-LA
+  disassembly (commit `7437552`); the spritesheet-group indexing scheme
+  matches byte-for-byte between LA-1993 and LA-DX, so the DX-targeted
+  semantic labels translate directly to the original-LA ROM. Until v0.4.6
+  the seven sprite previews decoded to noise from any LA ROM upload —
+  the pipeline was structurally sound but pointed at random byte
+  positions. Closes the long-deferred Task 5b from the v0.2.0 plan.
+- `owl_statue` geometry flipped from 2x2 to 1x4 tiles in `manifest_la.py`
+  to match the in-game art. The Owl Statue renders as a 1-tile-wide,
+  4-tile-tall column in 8x16 OAM mode rather than a square sprite; 1x4
+  contiguous extraction (tiles `$50`-`$53` at ROM `$39100`) yields the
+  top half of the statue silhouette, which is the closest contiguous
+  approximation available.
+
 ## [0.4.5] - 2026-06-07
 
 ### Fixed
