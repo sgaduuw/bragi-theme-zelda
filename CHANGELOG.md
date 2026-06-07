@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Runtime ROM-driven sprite extraction. Site operators can upload their
+  Link's Awakening (1993, Game Boy) ROM via the admin UI; the theme
+  decodes 2bpp GB tile data from it live on every page render.
+- Admin upload page at `/admin/sites/<slug>/zelda/rom/upload` with
+  upload, replace, delete, and a live sprite-preview grid.
+- Public-site banner shown to logged-in editors prompting ROM upload
+  while none is configured.
+- `rom_sprite` and `rom_sprite_url` Jinja template globals for
+  rendering ROM-extracted sprites with `<picture>`-based light/dark
+  palette switching.
+- New `register_admin_blueprint` and `register_delivery_blueprint`
+  hookimpls on the theme plugin.
+- Pillow (`pillow ^12.2`) as a runtime dependency.
+
+### Changed
+
+- `register_template_globals` now also exposes `rom_sprite` and
+  `rom_sprite_url` alongside the existing `section_helper` and
+  `page_ancestors`.
+- The `/zelda/rom/...` delivery Blueprint is now registered via
+  `register_delivery_blueprint` (delivery-only) rather than from
+  `on_app_init` (which also fires on the admin app).
+- Existing placeholder PNGs under `static/sprites/` reorganized to
+  match manifest sprite names; the placeholder invariant test now
+  enforces parity.
+
 ## [0.1.6] - 2026-06-06
 
 ### Changed
