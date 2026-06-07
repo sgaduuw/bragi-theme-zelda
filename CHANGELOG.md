@@ -5,7 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.1] - 2026-06-07
+
+### Fixed
+
+- ROM extraction cache key now includes the file's `mtime_ns`, so an
+  atomic ROM swap at the same path (`store_rom`'s `os.replace`) is
+  visible to every worker process on the next request -- not just the
+  worker that handled the admin POST. Closes #25.
+- Admin ROM upload now enforces a 4 MiB + 64 KiB envelope cap via
+  `request.content_length` before any multipart parsing, so a
+  misbehaving editor cannot OOM the admin worker with an oversize
+  body. Returns 413. Closes #26.
+- New contrib test exercising the real bragi admin and delivery apps
+  to catch signature drift in `bragi.core.permissions` and the
+  `register_admin_blueprint` / `register_delivery_blueprint` hookspec
+  surface that the stub-based tests in `tests/integration/` would
+  miss. Closes #27.
+
+## [0.2.0] - 2026-06-07
+
+### Added
+
+- Runtime ROM-driven sprite extraction. Site operators can upload their
+  Link's Awakening (1993, Game Boy) ROM via the admin UI; the theme
+  decodes 2bpp GB tile data from it live on every page render.
+- Admin upload page at `/admin/sites/<slug>/zelda/rom/upload` with
+  upload, replace, delete, and a live sprite-preview grid.
+- Public-site banner shown to logged-in editors prompting ROM upload
+  while none is configured.
+- `rom_sprite` and `rom_sprite_url` Jinja template globals for
+  rendering ROM-extracted sprites with `<picture>`-based light/dark
+  palette switching.
+- New `register_admin_blueprint` and `register_delivery_blueprint`
+  hookimpls on the theme plugin.
+- Pillow (`pillow ^12.2`) as a runtime dependency.
+
+### Changed
+
+- `register_template_globals` now also exposes `rom_sprite` and
+  `rom_sprite_url` alongside the existing `section_helper` and
+  `page_ancestors`.
+- The `/zelda/rom/...` delivery Blueprint is now registered via
+  `register_delivery_blueprint` (delivery-only) rather than from
+  `on_app_init` (which also fires on the admin app).
+- Existing placeholder PNGs under `static/sprites/` reorganized to
+  match manifest sprite names; the placeholder invariant test now
+  enforces parity.
 
 ## [0.1.6] - 2026-06-06
 
