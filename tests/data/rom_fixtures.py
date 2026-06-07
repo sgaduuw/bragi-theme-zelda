@@ -9,6 +9,8 @@ technical specification; the checkerboard tile is geometric.
 
 from __future__ import annotations
 
+from bragi_theme_zelda.rom.decoder import SpriteRef
+
 
 def checkerboard_tile() -> bytes:
     """An 8x8 checkerboard tile in 2bpp format.
@@ -47,3 +49,16 @@ def build_fixture_rom(tile_at_0x10000: bytes | None = None) -> bytes:
         assert len(tile_at_0x10000) == 16, "tile must be 16 bytes (one 8x8 2bpp tile)"
         rom[0x10000 : 0x10000 + 16] = tile_at_0x10000
     return bytes(rom)
+
+
+# Used by tests/unit/test_rom_cache.py and tests/integration/test_rom_route.py.
+# The fixture tile lives at offset 0x10000 in the synthetic ROM; this entry
+# names that offset so test code can ask for sprite ``_fixture_tile`` and
+# get back the checkerboard tile rendered through the normal pipeline.
+FIXTURE_TILE_REF = SpriteRef(
+    rom_addr=0x10000,
+    tiles_w=1,
+    tiles_h=1,
+    transparent_bg=False,
+    label="Fixture tile",
+)

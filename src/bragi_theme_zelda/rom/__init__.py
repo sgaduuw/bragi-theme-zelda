@@ -6,8 +6,12 @@ validation and atomic file storage; :mod:`cache` wraps the extraction
 pipeline in an in-process LRU.
 
 The manifest of named sprites lives in :mod:`manifest_la` and ships with
-the theme version — adding a new sprite is a theme PR, never a ROM
+the theme version -- adding a new sprite is a theme PR, never a ROM
 re-upload.
 """
 
 from __future__ import annotations
+
+from bragi_theme_zelda.rom.cache import get_sprite_png
+
+__all__ = ["get_sprite_png"]
