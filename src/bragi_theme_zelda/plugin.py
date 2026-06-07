@@ -448,6 +448,24 @@ def register_delivery_blueprint() -> Any:
 
 
 @hookimpl
+def claims_root_route(site: Any) -> bool | None:
+    """Claim ``/`` for zelda-themed sites.
+
+    bragi's admin chrome (the welcome-fallback detector in
+    bragi.contrib.admin_notices) consults this hookspec to know when
+    a theme owns ``/`` for a given site, suppressing the false
+    "Visitors are seeing the default welcome page" notice. We answer
+    True for zelda-themed sites because resolve_home renders the
+    pause-menu inventory grid there, and None for everything else.
+
+    Cheap predicate by design: the hookspec contract forbids
+    rendering or DB queries inside the impl, since bragi calls it
+    from contexts that may lack a request context.
+    """
+    return True if getattr(site, "theme", None) == "zelda" else None
+
+
+@hookimpl
 def admin_notices(site: Any) -> list[AdminNotice]:
     """Surface a ROM-upload nudge in the admin chrome when a zelda-themed
     site has no ROM uploaded.
@@ -480,6 +498,7 @@ def admin_notices(site: Any) -> list[AdminNotice]:
 
 __all__ = [
     "admin_notices",
+    "claims_root_route",
     "on_app_init",
     "register_admin_blueprint",
     "register_delivery_blueprint",
