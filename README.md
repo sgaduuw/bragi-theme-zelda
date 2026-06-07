@@ -27,7 +27,19 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.4.5
+## Status: v0.4.6
+
+v0.4.6 finishes the v0.2.0 deferral: ROM offsets in `manifest_la.py` now
+point at the actual tile data for the seven supported sprites, sourced
+from [zladx/LADX-Disassembly](https://github.com/zladx/LADX-Disassembly)
+with cross-verification against
+[jverkoey/windfish](https://github.com/jverkoey/windfish)'s original-LA
+disassembly (commit `7437552`). Until v0.4.6 the offsets shipped as
+plausible-looking placeholders that decoded to noise from any LA ROM:
+the seven sprites were structurally extractable end-to-end but visually
+unrecognisable. `owl_statue`'s geometry also flipped from 2x2 to 1x4 to
+match the in-game art (8x16 OAM column rendering). Task 5b — the
+longstanding gap since v0.2.0 — is complete.
 
 v0.4.5 finishes off what v0.4.1 missed: the delivery `/zelda/rom/...` route
 also reads from `bragi.settings.settings.attachments_root` now (it was still
@@ -191,13 +203,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.5
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.6
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.5
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.6
 # That's it. No further pip install step needed.
 ```
 
@@ -213,10 +225,10 @@ for development against an unreleased commit.
 #### Delivery container
 
 ```dockerfile
-FROM ghcr.io/sgaduuw/bragi-delivery:v1.28.0
+FROM ghcr.io/sgaduuw/bragi-delivery:v1.29.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.5
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.6
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -226,10 +238,10 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.5
 #### Admin container
 
 ```dockerfile
-FROM ghcr.io/sgaduuw/bragi-admin:v1.28.0
+FROM ghcr.io/sgaduuw/bragi-admin:v1.29.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.5
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.6
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -237,7 +249,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.5
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.4.5 is the current release.
+release; v0.1.0 is git-tag-only. v0.4.6 is the current release.
 
 ## Development
 
