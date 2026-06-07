@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `request.content_length` before any multipart parsing, so a
   misbehaving editor cannot OOM the admin worker with an oversize
   body. Returns 413. Closes #26.
+- New contrib test exercising the real bragi admin and delivery apps
+  to catch signature drift in `bragi.core.permissions` and the
+  `register_admin_blueprint` / `register_delivery_blueprint` hookspec
+  surface that the stub-based tests in `tests/integration/` would
+  miss. Closes #27.
 
 ## [0.2.0] - 2026-06-07
 
