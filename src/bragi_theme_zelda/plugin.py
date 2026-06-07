@@ -326,10 +326,6 @@ def on_app_init(app: Flask, registry: Any) -> None:
     upstream changes; the workaround exists only because there is no clean
     way to install a themed errorhandler without it today.
     """
-    # Register the ROM-extraction delivery Blueprint.
-    from bragi_theme_zelda.delivery.rom_routes import build_rom_blueprint
-    app.register_blueprint(build_rom_blueprint())
-
     # Maximum hops mirrors bragi's own constant in core/middleware/redirects.py.
     # Kept local to avoid importing from bragi.core (plugin boundary).
     max_hops = 3
@@ -438,9 +434,23 @@ def register_admin_blueprint() -> Any:
     )
 
 
+@hookimpl
+def register_delivery_blueprint() -> Any:
+    """Register the ROM-extraction Blueprint on the delivery app.
+
+    The route surface ``/zelda/rom/<game>/<palette>/<sprite>.png`` is
+    delivery-only; this hook fires only on the delivery app so the
+    admin app does not mirror the route.
+    """
+    from bragi_theme_zelda.delivery.rom_routes import build_rom_blueprint
+
+    return build_rom_blueprint()
+
+
 __all__ = [
     "on_app_init",
     "register_admin_blueprint",
+    "register_delivery_blueprint",
     "register_theme",
     "register_template_globals",
     "resolve_home",
