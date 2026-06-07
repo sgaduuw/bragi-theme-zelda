@@ -19,6 +19,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
+from bragi.settings import settings
 from flask import Blueprint, Response, abort, current_app, g, request
 
 from bragi_theme_zelda.rom import get_sprite_png
@@ -48,10 +49,13 @@ def _resolve_site_slug() -> str:
 
 
 def _attachments_root() -> Path:
-    raw = current_app.config.get("BRAGI_ATTACHMENTS_ROOT")
-    if not raw:
-        abort(404)
-    return Path(raw)
+    """Read the attachments root from bragi's Settings.
+
+    Same pattern as bragi.contrib.attachments (and the admin upload
+    handler since v0.4.1). The previous Flask-config approach was a
+    v0.2.0 plan-time choice that bragi never populated, so this route
+    always 404'd post-deploy. Closes #59 (delivery half of #48)."""
+    return Path(settings.attachments_root)
 
 
 def build_rom_blueprint() -> Blueprint:
