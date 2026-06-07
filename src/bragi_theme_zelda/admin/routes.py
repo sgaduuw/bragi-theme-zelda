@@ -34,8 +34,10 @@ def build_admin_blueprint(
     Parameters
     ----------
     current_site
-        Callable ``(site_slug: str) -> Site``. Raises ``abort(404)``
-        if no such site or the user can't see it.
+        Callable ``(site_slug: str) -> Site | None``. Returns
+        ``None`` (or raises ``abort(404)`` directly) if no such site
+        or the user can't see it. The route handler guards on
+        ``None`` for safety.
     require_role
         Callable ``(role: str, site_id: int) -> None`` that aborts
         with 403 if the user lacks the role. Bragi's standard
