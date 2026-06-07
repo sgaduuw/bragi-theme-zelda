@@ -27,7 +27,23 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.1.6
+## Status: v0.2.1
+
+v0.2.1 is a PATCH bundle of post-v0.2.0 hardening: ROM extraction cache key now
+includes `mtime_ns` so atomic swaps self-invalidate across worker processes (#25),
+admin upload enforces a 4 MiB + 64 KiB envelope cap via `request.content_length`
+before any multipart parsing to prevent admin-worker OOM (#26), and new contrib
+tests exercise the real bragi admin + delivery apps to catch hookspec signature
+drift the prior stub-based tests would miss (#27). No template or schema changes.
+
+v0.2.0 introduces runtime ROM-driven sprite extraction. Site operators upload
+their Link's Awakening (1993, Game Boy) ROM via the admin
+(`/admin/sites/<slug>/zelda/rom/upload`); the theme decodes 2bpp GB tile data on
+every page render to serve pixel-perfect LA-authentic character and item sprites.
+The theme package itself ships zero Nintendo IP. New hookimpls:
+`register_admin_blueprint` and `register_delivery_blueprint`. New Jinja globals:
+`rom_sprite` and `rom_sprite_url`. Falls back to v0.1.6 placeholder PNGs when no
+ROM is uploaded.
 
 v0.1.6 is a PATCH bundle of pause-menu visual polish: drop the inner `.pause-menu__sprite`
 border (it duplicated the tile-frame border and read as a nested double-wall), bump
@@ -62,8 +78,46 @@ so a future release swaps in real art via per-file PNG replacement with no code 
 
 ## Asset provenance
 
-Fonts and sprites are documented row-by-row in [ASSETS.md](ASSETS.md). No ROM-ripped
-Nintendo assets; see ASSETS.md for the full sourcing and licence detail.
+Fonts and sprites are documented row-by-row in [ASSETS.md](ASSETS.md). For ROM-extracted
+sprites (v0.2.0+), each operator supplies their own ROM; the theme itself ships zero Nintendo IP.
+See ASSETS.md for the full sourcing and licence detail.
+
+## ROM-extracted sprites (v0.2.0+)
+
+Character portraits and iconic item sprites can be extracted live from an operator-uploaded
+Link's Awakening (1993, Game Boy) ROM. The theme package itself ships zero Nintendo IP; each
+operator brings their own legally-dumped cartridge data.
+
+After installing the theme, visit:
+
+```
+/admin/sites/<your-site-slug>/zelda/rom/upload
+```
+
+...and upload your `.gb` dump. Sprites then extract live on every page render. Until a ROM is
+uploaded, the theme falls back to the v0.1.6 placeholder PNGs; logged-in site editors see a
+nudge banner pointing at the upload page.
+
+The delivery URL `/zelda/rom/la/<palette>/<sprite>.png?v=<sha[:12]>` exposes the provenance
+directly: the `rom` segment makes clear the PNG is live-extracted, the palette segment selects
+DMG (4-greens) or GB Pocket greyscale, and the `?v=` cache-buster automatically invalidates
+browser/CDN caches whenever the ROM is swapped.
+
+### Template helpers
+
+Two Jinja globals are exposed for use in custom templates:
+
+~~~jinja
+{{ rom_sprite('marin', alt='Marin says') }}
+{# Becomes a <picture> with dmg + pocket variants when ROM uploaded,
+   or <img> to /static/sprites/portraits/marin.png otherwise. #}
+
+{{ rom_sprite_url('marin', palette='dmg') }}
+{# Returns just the URL string; use for inline CSS or JS. #}
+~~~
+
+Sprite names available since v0.2.0: `marin`, `tarin`, `owl`, `ulrira`,
+`heart_container`, `rupee_green`, `owl_statue`.
 
 ## Installing
 
@@ -74,13 +128,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.1.6
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.2.1
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.1.6
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.2.1
 # That's it. No further pip install step needed.
 ```
 
@@ -99,7 +153,7 @@ for development against an unreleased commit.
 FROM ghcr.io/sgaduuw/bragi-delivery:v1.27.6
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.1.6
+RUN pip install --no-cache-dir bragi-theme-zelda==0.2.1
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -112,7 +166,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.1.6
 FROM ghcr.io/sgaduuw/bragi-admin:v1.27.6
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.1.6
+RUN pip install --no-cache-dir bragi-theme-zelda==0.2.1
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -120,7 +174,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.1.6
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.1.6 is the current release.
+release; v0.1.0 is git-tag-only. v0.2.1 is the current release.
 
 ## Development
 

@@ -18,6 +18,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # Mint an installation token from the bragi-theme-dispatcher App
+      # so the PR opened by peter-evans/create-pull-request@v7 is created
+      # under the App identity. PRs created with the default GITHUB_TOKEN
+      # do NOT trigger downstream workflows (GitHub's loop-prevention),
+      # which means zelda's own ci.yml skipped the bump PR on first
+      # creation. App-created PRs trigger CI normally.
+      - name: Mint App installation token
+        uses: actions/create-github-app-token@v2
+        id: token
+        with:
+          app-id: ${{ vars.THEME_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.THEME_DISPATCH_APP_KEY }}
+
       - name: Compute current and new versions
         id: v
         run: |
@@ -55,6 +68,7 @@ jobs:
         if: steps.v.outputs.skip != 'samever'
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ steps.token.outputs.token }}
           branch: bump-bragi-v${{ steps.v.outputs.new }}
           title: "deps(docker): bump bragi base to v${{ steps.v.outputs.new }}"
           body: |
