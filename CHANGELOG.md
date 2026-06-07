@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-06-07
+
+### Fixed
+
+- ROM upload page (`/admin/sites/<slug>/zelda/rom/upload`) now extends
+  bragi's `admin/base.html` so it renders inside the admin chrome instead
+  of as a standalone page. Surfaced on first v0.3.0 deploy: the page
+  visually looked like leaving the admin area. Closes #38.
+- The upload, replace, and delete forms on the ROM management page
+  now include the `_csrf_token` hidden field required by bragi's
+  global CSRF middleware. Without it the operator could not upload a
+  ROM (`CSRF token missing or invalid.`). Closes #39.
+- Test fixture for the admin route tests now provides a minimal
+  `admin/base.html` and a stub `csrf_token()` Jinja global so the
+  templates render under the stub Flask app. (The real bragi admin app
+  provides both natively; the stub didn't, which is why the two issues
+  above slipped through CI.)
+
 ## [0.3.0] - 2026-06-07
 
 ### Added
