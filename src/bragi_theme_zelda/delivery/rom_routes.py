@@ -77,7 +77,7 @@ def build_rom_blueprint() -> Blueprint:
                 palette=palette,
                 sprite_name=sprite_name,
             )
-        except (KeyError, FileNotFoundError, IndexError):
+        except (KeyError, OSError, IndexError):
             abort(404)
 
         return Response(png_bytes, mimetype="image/png")
