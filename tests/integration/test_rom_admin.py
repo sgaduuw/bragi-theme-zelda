@@ -43,11 +43,21 @@ def site() -> StubSite:
 
 
 @pytest.fixture
-def app(tmp_path: Path, site: StubSite) -> Flask:
+def app(
+    tmp_path: Path,
+    site: StubSite,
+    monkeypatch: pytest.MonkeyPatch,
+) -> Flask:
+    # Theme reads bragi.settings.settings.attachments_root for the storage
+    # path. Pin it at tmp_path so each test gets a clean attachments dir,
+    # matching what the production bragi admin app would resolve from env.
+    from bragi.settings import settings as bragi_settings
+
+    monkeypatch.setattr(bragi_settings, "attachments_root", str(tmp_path))
+
     flask_app = Flask(__name__, template_folder=None)
     flask_app.config["TESTING"] = True
     flask_app.config["SECRET_KEY"] = "test-secret"  # flask.flash needs sessions
-    flask_app.config["BRAGI_ATTACHMENTS_ROOT"] = str(tmp_path)
     flask_app.register_blueprint(
         build_admin_blueprint(
             current_site=lambda _slug: site,
