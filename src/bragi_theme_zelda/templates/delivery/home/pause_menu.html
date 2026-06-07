@@ -11,7 +11,7 @@
       <li class="pause-menu__tile">
         <a href="{{ tile.url }}">
           <span class="pause-menu__sprite"
-                style="background-image: url('/theme/zelda/static/sprites/items/{{ tile.sprite }}.png');"
+                style="background-image: url('{{ rom_sprite_url(tile.sprite) }}');"
                 aria-hidden="true"></span>
           <span class="pause-menu__label">{{ tile.title }}</span>
         </a>

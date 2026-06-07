@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2026-06-07
+
+### Fixed
+
+- Sprite rendering now actually consults the ROM extraction
+  pipeline. The pause-menu home tiles and the callout-textbox
+  portrait both used to hardcode `/theme/zelda/static/sprites/...`
+  placeholder paths regardless of whether a ROM was uploaded; the
+  `rom_sprite_url` Jinja global was dead code. Templates now call
+  the helper, which returns the live `/zelda/rom/la/<palette>/<name>.png?v=<sha>`
+  extraction URL for manifest-known sprites when a ROM is uploaded
+  and falls back to the static placeholder otherwise.
+- `make_rom_sprite_helpers` default `static_prefix` corrected from
+  `/static/sprites` to `/theme/zelda/static/sprites`. Bragi mounts
+  the theme's static dir at the latter; the former 404'd.
+- `rom_sprite_url` and `rom_sprite` no longer raise `KeyError` for
+  decorative-only sprite names (e.g. `la_pearl`, `kokiri_emerald`,
+  `triforce_piece`) that aren't in `SPRITES_LA`. Those names
+  resolve to their static placeholder path instead. The ROM
+  extraction pipeline cannot produce them regardless of upload
+  state, so the helper now matches that reality.
+- `_get_current_site` in the `register_template_globals` hookimpl
+  guards on `flask.has_app_context()` before reading `g.site`,
+  falling back to the null-site helpers when called outside a
+  request (e.g. when the callout-textbox macro is rendered from a
+  unit test).
+
 ## [0.4.2] - 2026-06-07
 
 ### Fixed

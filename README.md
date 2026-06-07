@@ -27,7 +27,16 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.4.2
+## Status: v0.4.3
+
+v0.4.3 finally wires the ROM extraction pipeline through to rendered sprites.
+Until now the pause-menu home tiles and callout-textbox portraits hardcoded
+the static placeholder paths regardless of whether a ROM was uploaded; the
+`rom_sprite_url` Jinja global was dead code. v0.4.3 has the templates call
+the helper, fixes its default static-prefix to match bragi's theme-static
+mount, and makes it fall back gracefully for decorative-only sprite names
+that aren't in `SPRITES_LA`. Closes the loop on the v0.2.0+ ROM upload
+feature actually doing something visible.
 
 v0.4.2 is a second hotfix on the v0.4.0 ROM upload path: the handlers were
 calling a `site.save()` method that bragi's SQLAlchemy `Site` model doesn't
@@ -169,13 +178,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.2
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.3
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.2
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.3
 # That's it. No further pip install step needed.
 ```
 
@@ -194,7 +203,7 @@ for development against an unreleased commit.
 FROM ghcr.io/sgaduuw/bragi-delivery:v1.28.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.2
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.3
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -207,7 +216,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.2
 FROM ghcr.io/sgaduuw/bragi-admin:v1.28.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.2
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.3
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -215,7 +224,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.2
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.4.2 is the current release.
+release; v0.1.0 is git-tag-only. v0.4.3 is the current release.
 
 ## Development
 
