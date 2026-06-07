@@ -27,6 +27,10 @@ class StubSite:
     def __init__(self, slug: str = "testsite") -> None:
         self.slug = slug
         self.id = 1
+        # Used by zelda_rom.html's preview-grid <img> URLs, which are
+        # cross-host (admin → delivery host) since the ROM delivery
+        # blueprint is delivery-only.
+        self.hostname = "testsite.example"
         self.extra_settings: dict[str, str] = {}
 
 
@@ -130,6 +134,10 @@ def test_status_get_with_active_rom_shows_sha_and_preview_grid(
     # Preview grid should reference each manifest sprite.
     for name in ("marin", "tarin", "owl", "ulrira", "heart_container"):
         assert name in body
+    # Preview URLs target the delivery host (admin and delivery are
+    # separately-scoped hosts in bragi's two-app split; the ROM extraction
+    # route is delivery-only).
+    assert "//testsite.example/zelda/rom/la/dmg/marin.png" in body
 
 
 def test_upload_post_with_valid_rom_stores_file_and_sha(
