@@ -32,6 +32,12 @@ CACHE_CONTROL = "public, max-age=86400, immutable"
 
 
 def _resolve_site_slug() -> str:
+    """Resolve current site slug.
+
+    Production: bragi sets ``g.site`` during request resolution.
+    Tests: ``ZELDA_TEST_SITE_SLUG`` overrides for unit testing the
+    blueprint without standing up a full bragi app.
+    """
     override = current_app.config.get("ZELDA_TEST_SITE_SLUG")
     if override:
         return str(override)
