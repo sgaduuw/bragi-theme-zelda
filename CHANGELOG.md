@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-06-07
+
+### Fixed
+
+- ROM upload and delete handlers no longer call a `site.save()`
+  method that bragi's SQLAlchemy `Site` model doesn't have.
+  Replaced with a `_persist_site_extra_setting(site, key, value)`
+  helper that opens a fresh `bragi.core.db.SessionLocal`,
+  re-attaches the (detached) site via `session.get(Site, site.id)`,
+  mutates the `MutableDict.as_mutable(JSON)`-wrapped
+  `extra_settings`, and commits. Same root-cause family as #48
+  (Flask config key bragi never populates) and #43 (tests don't
+  use the real admin app fixture). Closes #51.
+
 ## [0.4.1] - 2026-06-07
 
 ### Fixed
