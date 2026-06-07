@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections.abc import Generator
 from importlib.resources import files
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import jinja2
 from bragi.api import ThemeSpec, hookimpl
@@ -32,6 +32,17 @@ _SECTION_SLUG_MAP: dict[str, str] = {
     "links-awakening": "la",
     "ocarina-of-time": "oot",
 }
+
+
+class _NullSite:
+    """Used by template helpers when no site is in scope (e.g. error pages).
+
+    Returns an empty extra_settings so the rom-sprite helpers fall
+    back to placeholders silently.
+    """
+
+    slug: str = ""
+    extra_settings: ClassVar[dict[str, str]] = {}
 
 
 def _section_helper(page: Any) -> tuple[str, str]:
@@ -154,7 +165,7 @@ def register_theme() -> ThemeSpec:
 
 @hookimpl
 def register_template_globals(env: jinja2.Environment) -> None:
-    """Expose section_helper and page_ancestors to delivery templates.
+    """Expose section_helper, page_ancestors, rom_sprite, rom_sprite_url.
 
     bragi's hookspec mutates the Jinja `env` in place (adding globals,
     filters, or tests). We inject `section_helper(page)` for the OoT
@@ -162,12 +173,28 @@ def register_template_globals(env: jinja2.Environment) -> None:
     breadcrumb partial; both bypass `page.parent` (absent on bragi's
     Page model) by walking `parent_id` via SQL.
 
+    Also exposes the ROM-extracted sprite helpers `rom_sprite(name, alt)`
+    (returns a `<picture>` element or a placeholder `<img>`) and
+    `rom_sprite_url(name, palette)` (returns the URL string only).
+
     Note: the hookspec signature is `(env: jinja2.Environment) -> None`,
     not `dict[str, Any]`. The plan's assumed signature differed; this
     implementation matches the actual bragi hookspec.
     """
+    from bragi_theme_zelda.template_helpers import make_rom_sprite_helpers
+
     env.globals["section_helper"] = _section_helper
     env.globals["page_ancestors"] = _page_ancestors
+
+    def _get_current_site() -> Any:
+        # bragi puts the current site on flask.g during request resolution.
+        return getattr(g, "site", None) or _NullSite()
+
+    rom_sprite, rom_sprite_url = make_rom_sprite_helpers(
+        get_site=_get_current_site,
+    )
+    env.globals["rom_sprite"] = rom_sprite
+    env.globals["rom_sprite_url"] = rom_sprite_url
 
 
 @hookimpl(hookwrapper=True)
@@ -299,6 +326,10 @@ def on_app_init(app: Flask, registry: Any) -> None:
     upstream changes; the workaround exists only because there is no clean
     way to install a themed errorhandler without it today.
     """
+    # Register the ROM-extraction delivery Blueprint.
+    from bragi_theme_zelda.delivery.rom_routes import build_rom_blueprint
+    app.register_blueprint(build_rom_blueprint())
+
     # Maximum hops mirrors bragi's own constant in core/middleware/redirects.py.
     # Kept local to avoid importing from bragi.core (plugin boundary).
     max_hops = 3
@@ -371,4 +402,46 @@ def on_app_init(app: Flask, registry: Any) -> None:
         return make_response(body, 500)
 
 
-__all__ = ["on_app_init", "register_theme", "register_template_globals", "resolve_home"]
+@hookimpl
+def register_admin_blueprint() -> Any:
+    """Register the Zelda theme's admin Blueprint for ROM upload management.
+
+    Wires bragi's site-resolution and role-gate callables into the
+    blueprint factory so access control matches every other bragi admin
+    surface.
+
+    Note: `bragi.api` does not expose `current_site_by_slug` or
+    `require_role` as of the current bragi version. We reach into
+    `bragi.core.permissions` directly as a temporary boundary crossing.
+    `resolve_site_or_abort` takes ``(db, site_slug)``; we wrap it in a
+    closure that opens a SessionLocal so the blueprint sees the simple
+    ``(site_slug: str) -> Site`` contract it expects. This should be
+    replaced with a clean `bragi.api` surface once bragi exposes one.
+
+    TODO: migrate to `bragi.api.current_site_by_slug` and
+    `bragi.api.require_role` once bragi grows that hookspec surface.
+    """
+    # Temporary bragi.core imports: no clean bragi.api equivalent yet.
+    from bragi.core.db import SessionLocal
+    from bragi.core.permissions import require_role as _require_role
+    from bragi.core.permissions import resolve_site_or_abort
+
+    from bragi_theme_zelda.admin import build_admin_blueprint
+
+    def _current_site(site_slug: str) -> Any:
+        with SessionLocal() as db:
+            return resolve_site_or_abort(db, site_slug)
+
+    return build_admin_blueprint(
+        current_site=_current_site,
+        require_role=_require_role,
+    )
+
+
+__all__ = [
+    "on_app_init",
+    "register_admin_blueprint",
+    "register_theme",
+    "register_template_globals",
+    "resolve_home",
+]
