@@ -136,6 +136,31 @@ def test_upload_post_without_file_returns_error(app: Flask, tmp_path: Path) -> N
     assert not rom_path_for_site(tmp_path, "testsite", "la").exists()
 
 
+def test_upload_post_with_oversize_body_returns_413(
+    app: Flask,
+    tmp_path: Path,
+) -> None:
+    """Regression: oversize uploads must 413 before buffering the body.
+
+    Defends against admin-worker OOM (issue #26): the cap is checked
+    via Content-Length before any request.files access. Posting 8 MiB
+    of arbitrary bytes (well past the 4 MiB ROM cap + 64 KiB envelope
+    margin) must return 413 and never write a file.
+    """
+    oversize = b"\x00" * (8 * 1024 * 1024)
+    resp = app.test_client().post(
+        "/admin/sites/testsite/zelda/rom/upload",
+        data={
+            "action": "upload",
+            "rom": (io.BytesIO(oversize), "huge.gb"),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=False,
+    )
+    assert resp.status_code == 413
+    assert not rom_path_for_site(tmp_path, "testsite", "la").exists()
+
+
 def test_delete_post_removes_file_and_clears_sha(
     app: Flask,
     site: StubSite,
