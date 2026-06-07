@@ -38,6 +38,30 @@ SiteResolver = Callable[[str], Any]
 RoleChecker = Callable[[str, int], None]
 
 
+def _persist_site_extra_setting(site: Any, key: str, value: str | None) -> None:
+    """Persist a single key/value to ``site.extra_settings``. ``value=None``
+    removes the key.
+
+    Opens a fresh ``SessionLocal``, re-attaches the site via
+    ``session.get(Site, site.id)`` (the ``site`` parameter is detached
+    because the resolver closure already closed its session), mutates the
+    ``MutableDict``-wrapped JSON column, commits. Tests stub this function
+    at module level to avoid hitting a real bragi DB.
+    """
+    from bragi.core.db import SessionLocal
+    from bragi.core.models import Site
+
+    with SessionLocal() as session:
+        db_site = session.get(Site, site.id)
+        if db_site is None:
+            return
+        if value is None:
+            db_site.extra_settings.pop(key, None)
+        else:
+            db_site.extra_settings[key] = value
+        session.commit()
+
+
 def build_admin_blueprint(
     *,
     current_site: SiteResolver,
@@ -125,8 +149,7 @@ def build_admin_blueprint(
         except OSError as exc:
             flash(f"Failed to write ROM: {exc}", "error")
             return redirect(url_for(".upload", site_slug=site.slug))
-        site.extra_settings["zelda_rom_la_sha256"] = sha
-        site.save()
+        _persist_site_extra_setting(site, "zelda_rom_la_sha256", sha)
 
         # Bust LRU so the next request sees the new ROM if the path is identical.
         _cache_clear()
@@ -143,8 +166,7 @@ def build_admin_blueprint(
         path = rom_path_for_site(attachments_root, site.slug, "la")
         if path.exists():
             path.unlink()
-        site.extra_settings.pop("zelda_rom_la_sha256", None)
-        site.save()
+        _persist_site_extra_setting(site, "zelda_rom_la_sha256", None)
         _cache_clear()
         # Flip the ROM-required notice back on immediately; without this the
         # admin chrome would not show the nudge until the 30s TTL expires.
