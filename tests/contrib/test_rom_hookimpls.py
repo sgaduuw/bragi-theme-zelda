@@ -196,3 +196,38 @@ def test_admin_notices_empty_for_non_zelda_site(
 
     notices = pm.hook.admin_notices(site=FakeSite())
     assert notices == [[]]
+
+
+# ── 6. claims_root_route hookimpl ────────────────────────────────────────────
+
+
+def test_claims_root_route_returns_true_for_zelda_themed_site(
+    pm: pluggy.PluginManager,
+) -> None:
+    class FakeSite:
+        theme = "zelda"
+
+    # firstresult=True hookspec; pm.hook.<name>(...) returns the first
+    # non-None result directly, not a list.
+    result = pm.hook.claims_root_route(site=FakeSite())
+    assert result is True
+
+
+def test_claims_root_route_returns_none_for_non_zelda_site(
+    pm: pluggy.PluginManager,
+) -> None:
+    class FakeSite:
+        theme = "default"
+
+    result = pm.hook.claims_root_route(site=FakeSite())
+    assert result is None
+
+
+def test_claims_root_route_returns_none_when_site_has_no_theme(
+    pm: pluggy.PluginManager,
+) -> None:
+    class FakeSite:
+        pass  # no `theme` attribute at all
+
+    result = pm.hook.claims_root_route(site=FakeSite())
+    assert result is None
