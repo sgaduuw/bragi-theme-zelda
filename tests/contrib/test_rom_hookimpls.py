@@ -8,6 +8,7 @@ stub-based tests in tests/integration/ would miss. See issue #27.
 from __future__ import annotations
 
 import inspect
+from typing import ClassVar
 
 import bragi.hookspecs as bragi_hookspecs
 import pluggy
@@ -143,3 +144,55 @@ def test_require_role_signature_stable() -> None:
     params = list(sig.parameters.values())
     # Expect at least two positional parameters (role/min_role, site_id).
     assert len(params) >= 2, f"require_role signature changed: {sig}"
+
+
+# ── 5. admin_notices hookimpl ────────────────────────────────────────────
+
+
+def test_admin_notices_reports_rom_required_for_unconfigured_zelda_site(
+    pm: pluggy.PluginManager,
+) -> None:
+    """The admin_notices hookimpl emits zelda.rom_required when the site
+    is zelda-themed and has no ROM uploaded."""
+
+    class FakeSite:
+        theme = "zelda"
+        slug = "zelda-eelcowesemann-nl"
+        extra_settings: ClassVar[dict[str, str]] = {}  # no ROM sha set
+
+    notices = pm.hook.admin_notices(site=FakeSite())
+    # pluggy returns list-of-lists (one per plugin); our theme is the only
+    # plugin in the test pm, so flatten the single inner list.
+    assert len(notices) == 1
+    notice_list = notices[0]
+    assert len(notice_list) == 1
+    n = notice_list[0]
+    assert n.key == "zelda.rom_required"
+    assert n.severity == "action_required"
+    assert n.dismissible is False
+    assert n.cta_endpoint == "zelda_admin.upload"
+    assert n.cta_endpoint_kwargs == {"site_slug": "zelda-eelcowesemann-nl"}
+
+
+def test_admin_notices_empty_when_zelda_site_has_rom(
+    pm: pluggy.PluginManager,
+) -> None:
+    class FakeSite:
+        theme = "zelda"
+        slug = "zelda-eelcowesemann-nl"
+        extra_settings: ClassVar[dict[str, str]] = {"zelda_rom_la_sha256": "x" * 64}
+
+    notices = pm.hook.admin_notices(site=FakeSite())
+    assert notices == [[]]  # one plugin, returning empty list
+
+
+def test_admin_notices_empty_for_non_zelda_site(
+    pm: pluggy.PluginManager,
+) -> None:
+    class FakeSite:
+        theme = "default"
+        slug = "other-site"
+        extra_settings: ClassVar[dict[str, str]] = {}
+
+    notices = pm.hook.admin_notices(site=FakeSite())
+    assert notices == [[]]
