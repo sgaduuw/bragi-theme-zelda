@@ -9,16 +9,27 @@ standing up a full bragi admin app. In production
 from __future__ import annotations
 
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 from flask import (
     Blueprint,
     abort,
+    current_app,
+    flash,
+    redirect,
     render_template,
     request,
+    url_for,
 )
 
+from bragi_theme_zelda.rom.cache import _cached_png
 from bragi_theme_zelda.rom.manifest_la import SPRITES_LA
+from bragi_theme_zelda.rom.upload import (
+    RomValidationError,
+    store_rom,
+    validate_la_rom,
+)
 
 SiteResolver = Callable[[str], Any]
 RoleChecker = Callable[[str, int], None]
@@ -69,7 +80,44 @@ def build_admin_blueprint(
         )
 
     def _handle_post(site: Any):  # type: ignore[no-untyped-def]
-        # Implemented in Task 14.
-        abort(405)
+        action = request.form.get("action", "")
+        if action == "upload" or action == "replace":
+            return _handle_upload(site)
+        if action == "delete":
+            return _handle_delete(site)
+        abort(400)
+
+    def _handle_upload(site: Any):  # type: ignore[no-untyped-def]
+        uploaded = request.files.get("rom")
+        if not uploaded or not uploaded.filename:
+            flash("No file selected.", "error")
+            return redirect(url_for(".upload", site_slug=site.slug))
+
+        data = uploaded.read()
+        try:
+            validate_la_rom(data)
+        except RomValidationError as exc:
+            flash(f"Rejected: {exc}", "error")
+            return redirect(url_for(".upload", site_slug=site.slug))
+
+        attachments_root = Path(current_app.config["BRAGI_ATTACHMENTS_ROOT"])
+        sha = store_rom(
+            data,
+            attachments_root=attachments_root,
+            site_slug=site.slug,
+            game="la",
+        )
+        site.extra_settings["zelda_rom_la_sha256"] = sha
+        site.save()
+
+        # Bust LRU so the next request sees the new ROM if the path is identical.
+        _cached_png.cache_clear()
+
+        flash(f"ROM uploaded. sha256: {sha[:12]}…", "success")
+        return redirect(url_for(".upload", site_slug=site.slug))
+
+    def _handle_delete(site: Any):  # type: ignore[no-untyped-def]
+        # Implemented in Task 15.
+        abort(501)
 
     return bp

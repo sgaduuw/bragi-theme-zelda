@@ -7,6 +7,7 @@ via the blueprint factory.
 
 from __future__ import annotations
 
+import io
 from pathlib import Path
 
 import pytest
@@ -14,7 +15,7 @@ from flask import Flask
 
 from bragi_theme_zelda.admin.routes import build_admin_blueprint
 from bragi_theme_zelda.rom.cache import _cache_clear
-from bragi_theme_zelda.rom.upload import store_rom
+from bragi_theme_zelda.rom.upload import rom_path_for_site, store_rom
 from tests.data.rom_fixtures import build_fixture_rom
 
 
@@ -78,3 +79,52 @@ def test_status_get_with_active_rom_shows_sha_and_preview_grid(
     # Preview grid should reference each manifest sprite.
     for name in ("marin", "tarin", "owl", "ulrira", "heart_container"):
         assert name in body
+
+
+def test_upload_post_with_valid_rom_stores_file_and_sha(
+    app: Flask, site: StubSite, tmp_path: Path,
+) -> None:
+    rom = build_fixture_rom()
+    resp = app.test_client().post(
+        "/admin/sites/testsite/zelda/rom/upload",
+        data={
+            "action": "upload",
+            "rom": (io.BytesIO(rom), "la.gb"),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=False,
+    )
+    assert resp.status_code in (302, 303)  # redirect after POST
+    assert rom_path_for_site(tmp_path, "testsite", "la").read_bytes() == rom
+    assert site.extra_settings.get("zelda_rom_la_sha256") is not None
+    assert len(site.extra_settings["zelda_rom_la_sha256"]) == 64
+
+
+def test_upload_post_with_invalid_rom_rejects_and_keeps_state_clean(
+    app: Flask, site: StubSite, tmp_path: Path,
+) -> None:
+    bad = b"not a ROM, just a small text file."
+    resp = app.test_client().post(
+        "/admin/sites/testsite/zelda/rom/upload",
+        data={
+            "action": "upload",
+            "rom": (io.BytesIO(bad), "fake.gb"),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=False,
+    )
+    # Either re-renders the form (200) or redirects (302) with a flash.
+    assert resp.status_code in (200, 302, 303)
+    assert not rom_path_for_site(tmp_path, "testsite", "la").exists()
+    assert "zelda_rom_la_sha256" not in site.extra_settings
+
+
+def test_upload_post_without_file_returns_error(app: Flask, tmp_path: Path) -> None:
+    resp = app.test_client().post(
+        "/admin/sites/testsite/zelda/rom/upload",
+        data={"action": "upload"},
+        content_type="multipart/form-data",
+        follow_redirects=False,
+    )
+    assert resp.status_code in (200, 302, 303, 400)
+    assert not rom_path_for_site(tmp_path, "testsite", "la").exists()
