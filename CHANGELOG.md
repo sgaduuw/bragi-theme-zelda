@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] - 2026-06-07
+
+### Fixed
+
+- Admin ROM upload page's sprite preview grid now emits absolute,
+  cross-host URLs (`//{{ site.hostname }}/zelda/rom/la/dmg/<name>.png`)
+  instead of relative paths. The ROM delivery blueprint is
+  registered via `register_delivery_blueprint` and only exists on
+  the delivery app at the site's public hostname; the admin host
+  has no such route, so the relative URLs 404'd. Closes #56.
+
 ## [0.4.3] - 2026-06-07
 
 ### Fixed
