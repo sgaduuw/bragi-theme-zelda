@@ -23,7 +23,7 @@ from flask import (
     url_for,
 )
 
-from bragi_theme_zelda.rom.cache import _cached_png
+from bragi_theme_zelda.rom.cache import _cache_clear
 from bragi_theme_zelda.rom.manifest_la import SPRITES_LA
 from bragi_theme_zelda.rom.upload import (
     RomValidationError,
@@ -101,17 +101,21 @@ def build_admin_blueprint(
             return redirect(url_for(".upload", site_slug=site.slug))
 
         attachments_root = Path(current_app.config["BRAGI_ATTACHMENTS_ROOT"])
-        sha = store_rom(
-            data,
-            attachments_root=attachments_root,
-            site_slug=site.slug,
-            game="la",
-        )
+        try:
+            sha = store_rom(
+                data,
+                attachments_root=attachments_root,
+                site_slug=site.slug,
+                game="la",
+            )
+        except OSError as exc:
+            flash(f"Failed to write ROM: {exc}", "error")
+            return redirect(url_for(".upload", site_slug=site.slug))
         site.extra_settings["zelda_rom_la_sha256"] = sha
         site.save()
 
         # Bust LRU so the next request sees the new ROM if the path is identical.
-        _cached_png.cache_clear()
+        _cache_clear()
 
         flash(f"ROM uploaded. sha256: {sha[:12]}…", "success")
         return redirect(url_for(".upload", site_slug=site.slug))
