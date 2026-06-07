@@ -10,6 +10,7 @@ from __future__ import annotations
 import io
 from pathlib import Path
 
+import jinja2
 import pytest
 from flask import Flask
 
@@ -53,6 +54,27 @@ def app(tmp_path: Path, site: StubSite) -> Flask:
             require_role=lambda _role, _site_id: None,
         ),
     )
+    # The zelda_rom.html template extends "admin/base.html" (bragi's admin
+    # chrome) and calls csrf_token() (bragi's CSRF middleware). The real
+    # admin app provides both; this stub provides minimal stand-ins so the
+    # template renders. Asserting on chrome shape or real CSRF rejection is
+    # a separate concern covered by the contrib tests that exercise the
+    # real bragi admin app.
+    flask_app.jinja_env.loader = jinja2.ChoiceLoader(
+        [
+            flask_app.jinja_env.loader,
+            jinja2.DictLoader(
+                {
+                    "admin/base.html": (
+                        "<!doctype html><html><head>"
+                        "<title>{% block title %}{% endblock %}</title>"
+                        "</head><body>{% block content %}{% endblock %}</body></html>"
+                    ),
+                },
+            ),
+        ],
+    )
+    flask_app.jinja_env.globals["csrf_token"] = lambda: "test-csrf-token"
     return flask_app
 
 

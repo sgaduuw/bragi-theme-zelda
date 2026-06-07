@@ -27,7 +27,14 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.3.0
+## Status: v0.3.1
+
+v0.3.1 is a hotfix bundle for two v0.3.0 deploy-time bugs: the ROM upload
+admin page now extends bragi's `admin/base.html` so it renders inside the
+admin chrome instead of as a standalone page (#38), and the upload / replace
+/ delete forms now include the `_csrf_token` hidden field required by
+bragi's CSRF middleware (without it, the operator could not upload a ROM at
+all — #39). No template or schema changes beyond the rom-management page.
 
 v0.3.0 closes the loop on the v0.2.0 delivery-side ROM-upload banner that
 couldn't render because bragi keeps admin and delivery session state on
@@ -139,13 +146,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.3.0
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.3.1
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.3.0
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.3.1
 # That's it. No further pip install step needed.
 ```
 
@@ -164,7 +171,7 @@ for development against an unreleased commit.
 FROM ghcr.io/sgaduuw/bragi-delivery:v1.28.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.3.0
+RUN pip install --no-cache-dir bragi-theme-zelda==0.3.1
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -177,7 +184,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.3.0
 FROM ghcr.io/sgaduuw/bragi-admin:v1.28.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.3.0
+RUN pip install --no-cache-dir bragi-theme-zelda==0.3.1
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -185,7 +192,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.3.0
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.3.0 is the current release.
+release; v0.1.0 is git-tag-only. v0.3.1 is the current release.
 
 ## Development
 
