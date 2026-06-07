@@ -3,7 +3,7 @@
 # See docker/admin.Dockerfile for the rationale on the root/bragi user
 # switch and the build args.
 
-ARG BRAGI_VERSION=1.28.0
+ARG BRAGI_VERSION=1.28.1
 FROM ghcr.io/sgaduuw/bragi-delivery:v${BRAGI_VERSION}
 
 ARG THEME_VERSION

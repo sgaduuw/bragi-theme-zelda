@@ -8,7 +8,7 @@
 # release becomes available. THEME_VERSION is injected by release.yml from
 # the GitHub Release tag.
 
-ARG BRAGI_VERSION=1.28.0
+ARG BRAGI_VERSION=1.28.1
 FROM ghcr.io/sgaduuw/bragi-admin:v${BRAGI_VERSION}
 
 ARG THEME_VERSION
