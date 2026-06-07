@@ -12,6 +12,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from bragi.api import invalidate_admin_notices
 from flask import (
     Blueprint,
     abort,
@@ -129,6 +130,10 @@ def build_admin_blueprint(
 
         # Bust LRU so the next request sees the new ROM if the path is identical.
         _cache_clear()
+        # Flip the ROM-required notice off immediately; without this the admin
+        # chrome would still show the nudge until bragi's 30s per-worker TTL
+        # expires, even though the ROM is now present.
+        invalidate_admin_notices(site)
 
         flash(f"ROM uploaded. sha256: {sha[:12]}…", "success")
         return redirect(url_for(".upload", site_slug=site.slug))
@@ -141,6 +146,9 @@ def build_admin_blueprint(
         site.extra_settings.pop("zelda_rom_la_sha256", None)
         site.save()
         _cache_clear()
+        # Flip the ROM-required notice back on immediately; without this the
+        # admin chrome would not show the nudge until the 30s TTL expires.
+        invalidate_admin_notices(site)
         flash("ROM removed. Sprites reverted to placeholders.", "success")
         return redirect(url_for(".upload", site_slug=site.slug))
 
