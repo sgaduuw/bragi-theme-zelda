@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bragi-theme-zelda"
-version = "0.1.6"
+version = "0.2.0"
 description = "Link's-Awakening-flavoured theme for the bragi CMS, used by zelda.eelcowesemann.nl"
 authors = ["Eelco Wesemann <claude-ai@init1.nl>"]
 license = "MIT"
