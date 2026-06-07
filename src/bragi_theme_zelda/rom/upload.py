@@ -1,4 +1,4 @@
-"""ROM upload validation and atomic file storage.
+"""ROM upload validation.
 
 Header validation rejects files that are obviously not LA ROMs
 (wrong size, wrong title field, wrong cartridge type byte). It does
@@ -6,11 +6,6 @@ not validate the Nintendo logo bytes at 0x0104-0x0133 — that would
 require embedding the canonical 48-byte logo in our test data, which
 adds legal fuzziness without rigour gain. The title-prefix and
 cartridge-type checks already reject every plausible wrong file.
-
-Storage uses atomic write-then-rename so concurrent readers never see
-a half-written file: writers create a sibling `.partial` file, fsync,
-then ``os.replace`` it to the final path. Readers ``mmap`` the final
-path; old workers keep their inode mapping until they release.
 """
 
 from __future__ import annotations
