@@ -128,3 +128,21 @@ def test_upload_post_without_file_returns_error(app: Flask, tmp_path: Path) -> N
     )
     assert resp.status_code in (200, 302, 303, 400)
     assert not rom_path_for_site(tmp_path, "testsite", "la").exists()
+
+
+def test_delete_post_removes_file_and_clears_sha(
+    app: Flask, site: StubSite, tmp_path: Path,
+) -> None:
+    rom = build_fixture_rom()
+    sha = store_rom(rom, attachments_root=tmp_path, site_slug="testsite", game="la")
+    site.extra_settings["zelda_rom_la_sha256"] = sha
+
+    resp = app.test_client().post(
+        "/admin/sites/testsite/zelda/rom/upload",
+        data={"action": "delete"},
+        content_type="multipart/form-data",
+        follow_redirects=False,
+    )
+    assert resp.status_code in (302, 303)
+    assert not rom_path_for_site(tmp_path, "testsite", "la").exists()
+    assert "zelda_rom_la_sha256" not in site.extra_settings
