@@ -22,3 +22,9 @@ build/
 /_claude/
 /CLAUDE.md
 /.superpowers/
+/.claude/
+
+# Local dev SQLite (and the WAL/SHM sidecars) — bragi smoke tests can land
+# a fresh DB here; never commit it.
+/bragi.db
+/bragi.db-*
