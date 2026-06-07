@@ -188,6 +188,14 @@ def register_template_globals(env: jinja2.Environment) -> None:
 
     def _get_current_site() -> Any:
         # bragi puts the current site on flask.g during request resolution.
+        # Guard against being called outside an app context (e.g. when the
+        # callout-textbox macro is rendered from a unit test that builds a
+        # bare Jinja environment): no context means no g, so fall through
+        # to the null-site placeholder helpers.
+        from flask import has_app_context
+
+        if not has_app_context():
+            return _NullSite()
         return getattr(g, "site", None) or _NullSite()
 
     rom_sprite, rom_sprite_url = make_rom_sprite_helpers(
