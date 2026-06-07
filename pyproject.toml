@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bragi-theme-zelda"
-version = "0.2.1"
+version = "0.3.0"
 description = "Link's-Awakening-flavoured theme for the bragi CMS, used by zelda.eelcowesemann.nl"
 authors = ["Eelco Wesemann <claude-ai@init1.nl>"]
 license = "MIT"
@@ -27,7 +27,7 @@ pillow = "^12.2"
 # bragi ships on PyPI as `bragi-cms` from v1.27.0 (Pillow precedent:
 # distribution name differs from import name; `bragi` PyPI name is held by
 # Managarm). Import path is unchanged: `from bragi.api import ...`.
-bragi-cms = "^1.27"
+bragi-cms = "^1.28"
 ruff = "^0.6"
 mypy = "^1.11"
 pytest = "^8.0"
