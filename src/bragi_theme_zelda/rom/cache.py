@@ -6,6 +6,14 @@ millisecond and PNG bytes are small (~2 KB), so duplicating the cache
 across workers is cheap. Restart -> cache empties; browsers continue
 serving from their own HTTP cache.
 
+Invalidation is the writer's responsibility: the cache is keyed by
+ROM path, not by ROM content. After every ``store_rom`` /
+``rom_path_for_site(...).unlink()`` (i.e. every operator-initiated
+upload, replace, or delete via the admin Blueprint), the caller MUST
+call ``_cached_png.cache_clear()`` to avoid serving stale bytes from
+the previous ROM at the same path. See ``admin/routes.py`` for the
+production wiring.
+
 The fixture-tile entry ``_fixture_tile`` is exposed only when the
 test data module is importable (it lives in ``tests/data/``). In
 production deployments, the lookup raises KeyError naturally because
