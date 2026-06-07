@@ -11,6 +11,12 @@ so they share a site-lookup callable:
   background-image, JS, etc.).
 
 The factory pattern keeps the helpers testable without Flask globals.
+
+Names not in :data:`SPRITES_LA` (decorative-only sprites like
+``la_pearl``, ``kokiri_emerald``, ``triforce_piece``) fall back to the
+static placeholder path rather than raising. Anything ROM-extractable
+is in the manifest by construction; anything outside it can never be
+ROM-extracted regardless of whether a ROM is uploaded.
 """
 
 from __future__ import annotations
@@ -26,25 +32,31 @@ from bragi_theme_zelda.rom.manifest_la import SPRITES_LA
 def make_rom_sprite_helpers(
     *,
     get_site: Callable[[], Any],
-    static_prefix: str = "/static/sprites",
+    static_prefix: str = "/theme/zelda/static/sprites",
 ) -> tuple[Callable[..., Markup], Callable[..., str]]:
-    """Build ``rom_sprite`` and ``rom_sprite_url`` helpers bound to ``get_site``."""
+    """Build ``rom_sprite`` and ``rom_sprite_url`` helpers bound to ``get_site``.
+
+    ``static_prefix`` is the URL prefix at which bragi mounts the
+    theme's ``static_dir``. Default matches bragi's
+    ``/theme/<slug>/static/sprites`` convention for the zelda theme.
+    """
 
     def _placeholder_path(name: str) -> str:
-        # Heuristic: portraits live under portraits/, items under items/, etc.
-        # Walk the manifest label or fall back to items/.
-        ref = SPRITES_LA[name]
-        # Character names live in portraits/, items in items/.
+        # Heuristic: known character names live in portraits/, everything
+        # else (items, decorative sprites) in items/. The classification
+        # matches the on-disk static-sprite layout.
         if name in {"marin", "tarin", "owl", "ulrira"}:
             sub = "portraits"
         else:
             sub = "items"
-        _ = ref  # label is only used in admin UI; placeholder path uses name
         return f"{static_prefix}/{sub}/{name}.png"
 
     def rom_sprite_url(name: str, palette: str = "dmg") -> str:
+        # Names outside the manifest are decorative-only and resolve
+        # directly to their placeholder file; the ROM extraction
+        # pipeline cannot produce them regardless of upload state.
         if name not in SPRITES_LA:
-            raise KeyError(f"unknown sprite: {name!r}")
+            return _placeholder_path(name)
         site = get_site()
         sha = site.extra_settings.get("zelda_rom_la_sha256")
         if not sha:
@@ -52,11 +64,14 @@ def make_rom_sprite_helpers(
         return f"/zelda/rom/la/{palette}/{name}.png?v={sha[:12]}"
 
     def rom_sprite(name: str, alt: str = "") -> Markup:
+        safe_alt = escape(alt)
+        # Same manifest-membership check as rom_sprite_url: not in
+        # manifest → static <img> only, no <picture> variants.
         if name not in SPRITES_LA:
-            raise KeyError(f"unknown sprite: {name!r}")
+            src = _placeholder_path(name)
+            return Markup(f'<img src="{src}" alt="{safe_alt}" class="rom-sprite">')
         site = get_site()
         sha = site.extra_settings.get("zelda_rom_la_sha256")
-        safe_alt = escape(alt)
         if not sha:
             src = _placeholder_path(name)
             return Markup(f'<img src="{src}" alt="{safe_alt}" class="rom-sprite">')
