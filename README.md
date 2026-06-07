@@ -27,7 +27,23 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.1.6
+## Status: v0.2.1
+
+v0.2.1 is a PATCH bundle of post-v0.2.0 hardening: ROM extraction cache key now
+includes `mtime_ns` so atomic swaps self-invalidate across worker processes (#25),
+admin upload enforces a 4 MiB + 64 KiB envelope cap via `request.content_length`
+before any multipart parsing to prevent admin-worker OOM (#26), and new contrib
+tests exercise the real bragi admin + delivery apps to catch hookspec signature
+drift the prior stub-based tests would miss (#27). No template or schema changes.
+
+v0.2.0 introduces runtime ROM-driven sprite extraction. Site operators upload
+their Link's Awakening (1993, Game Boy) ROM via the admin
+(`/admin/sites/<slug>/zelda/rom/upload`); the theme decodes 2bpp GB tile data on
+every page render to serve pixel-perfect LA-authentic character and item sprites.
+The theme package itself ships zero Nintendo IP. New hookimpls:
+`register_admin_blueprint` and `register_delivery_blueprint`. New Jinja globals:
+`rom_sprite` and `rom_sprite_url`. Falls back to v0.1.6 placeholder PNGs when no
+ROM is uploaded.
 
 v0.1.6 is a PATCH bundle of pause-menu visual polish: drop the inner `.pause-menu__sprite`
 border (it duplicated the tile-frame border and read as a nested double-wall), bump
@@ -100,7 +116,7 @@ Two Jinja globals are exposed for use in custom templates:
 {# Returns just the URL string; use for inline CSS or JS. #}
 ~~~
 
-Sprite names available in v0.2.0: `marin`, `tarin`, `owl`, `ulrira`,
+Sprite names available since v0.2.0: `marin`, `tarin`, `owl`, `ulrira`,
 `heart_container`, `rupee_green`, `owl_statue`.
 
 ## Installing
@@ -112,13 +128,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.1.6
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.2.1
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.1.6
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.2.1
 # That's it. No further pip install step needed.
 ```
 
@@ -137,7 +153,7 @@ for development against an unreleased commit.
 FROM ghcr.io/sgaduuw/bragi-delivery:v1.27.6
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.1.6
+RUN pip install --no-cache-dir bragi-theme-zelda==0.2.1
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -150,7 +166,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.1.6
 FROM ghcr.io/sgaduuw/bragi-admin:v1.27.6
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.1.6
+RUN pip install --no-cache-dir bragi-theme-zelda==0.2.1
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -158,7 +174,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.1.6
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.1.6 is the current release.
+release; v0.1.0 is git-tag-only. v0.2.1 is the current release.
 
 ## Development
 
