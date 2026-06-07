@@ -62,8 +62,46 @@ so a future release swaps in real art via per-file PNG replacement with no code 
 
 ## Asset provenance
 
-Fonts and sprites are documented row-by-row in [ASSETS.md](ASSETS.md). No ROM-ripped
-Nintendo assets; see ASSETS.md for the full sourcing and licence detail.
+Fonts and sprites are documented row-by-row in [ASSETS.md](ASSETS.md). For ROM-extracted
+sprites (v0.2.0+), each operator supplies their own ROM; the theme itself ships zero Nintendo IP.
+See ASSETS.md for the full sourcing and licence detail.
+
+## ROM-extracted sprites (v0.2.0+)
+
+Character portraits and iconic item sprites can be extracted live from an operator-uploaded
+Link's Awakening (1993, Game Boy) ROM. The theme package itself ships zero Nintendo IP; each
+operator brings their own legally-dumped cartridge data.
+
+After installing the theme, visit:
+
+```
+/admin/sites/<your-site-slug>/zelda/rom/upload
+```
+
+...and upload your `.gb` dump. Sprites then extract live on every page render. Until a ROM is
+uploaded, the theme falls back to the v0.1.6 placeholder PNGs; logged-in site editors see a
+nudge banner pointing at the upload page.
+
+The delivery URL `/zelda/rom/la/<palette>/<sprite>.png?v=<sha[:12]>` exposes the provenance
+directly: the `rom` segment makes clear the PNG is live-extracted, the palette segment selects
+DMG (4-greens) or GB Pocket greyscale, and the `?v=` cache-buster automatically invalidates
+browser/CDN caches whenever the ROM is swapped.
+
+### Template helpers
+
+Two Jinja globals are exposed for use in custom templates:
+
+~~~jinja
+{{ rom_sprite('marin', alt='Marin says') }}
+{# Becomes a <picture> with dmg + pocket variants when ROM uploaded,
+   or <img> to /static/sprites/portraits/marin.png otherwise. #}
+
+{{ rom_sprite_url('marin', palette='dmg') }}
+{# Returns just the URL string; use for inline CSS or JS. #}
+~~~
+
+Sprite names available in v0.2.0: `marin`, `tarin`, `owl`, `ulrira`,
+`heart_container`, `rupee_green`, `owl_statue`.
 
 ## Installing
 

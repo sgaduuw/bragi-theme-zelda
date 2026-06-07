@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Generator, Iterator
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+from tests.data.rom_fixtures import build_fixture_rom, checkerboard_tile
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -81,3 +84,21 @@ def bragi_app_with_theme(
 
     app = create_delivery_app()
     yield app
+
+
+@pytest.fixture(scope="session")
+def fixture_rom_bytes() -> bytes:
+    """Synthetic 1 MB GB-shaped ROM with one known checkerboard tile at 0x10000.
+
+    Session-scoped because the bytes are deterministic — nothing
+    inside a test mutates the bytes.
+    """
+    return build_fixture_rom(tile_at_0x10000=checkerboard_tile())
+
+
+@pytest.fixture
+def fixture_rom_path(tmp_path: Path, fixture_rom_bytes: bytes) -> Path:
+    """Per-test temp .gb file containing the fixture ROM bytes."""
+    path = tmp_path / "la.gb"
+    path.write_bytes(fixture_rom_bytes)
+    return path
