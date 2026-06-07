@@ -26,6 +26,7 @@ from flask import (
 from bragi_theme_zelda.rom.cache import _cache_clear
 from bragi_theme_zelda.rom.manifest_la import SPRITES_LA
 from bragi_theme_zelda.rom.upload import (
+    MAX_ROM_SIZE,
     RomValidationError,
     rom_path_for_site,
     store_rom,
@@ -89,6 +90,17 @@ def build_admin_blueprint(
         abort(400)
 
     def _handle_upload(site: Any):  # type: ignore[no-untyped-def]
+        # Cap the multipart body BEFORE accessing request.files: that
+        # access triggers Werkzeug's body parsing and would buffer the
+        # whole upload. Content-Length is the multipart envelope size
+        # (file + form fields + boundaries), so MAX_ROM_SIZE plus a 64 KiB
+        # envelope margin is the right cap. Missing Content-Length means
+        # a chunked or otherwise unbounded request; reject defensively
+        # since browser admin uploads always send the header.
+        cl = request.content_length
+        if cl is None or cl > MAX_ROM_SIZE + 64 * 1024:
+            abort(413)
+
         uploaded = request.files.get("rom")
         if not uploaded or not uploaded.filename:
             flash("No file selected.", "error")

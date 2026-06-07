@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   atomic ROM swap at the same path (`store_rom`'s `os.replace`) is
   visible to every worker process on the next request -- not just the
   worker that handled the admin POST. Closes #25.
+- Admin ROM upload now enforces a 4 MiB + 64 KiB envelope cap via
+  `request.content_length` before any multipart parsing, so a
+  misbehaving editor cannot OOM the admin worker with an oversize
+  body. Returns 413. Closes #26.
 
 ## [0.2.0] - 2026-06-07
 
