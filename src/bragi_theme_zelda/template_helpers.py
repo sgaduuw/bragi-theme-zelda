@@ -59,9 +59,7 @@ def make_rom_sprite_helpers(
         safe_alt = escape(alt)
         if not sha:
             src = _placeholder_path(name)
-            return Markup(
-                f'<img src="{src}" alt="{safe_alt}" class="rom-sprite">'
-            )
+            return Markup(f'<img src="{src}" alt="{safe_alt}" class="rom-sprite">')
         v = sha[:12]
         dark_src = f"/zelda/rom/la/pocket/{name}.png?v={v}"
         light_src = f"/zelda/rom/la/dmg/{name}.png?v={v}"

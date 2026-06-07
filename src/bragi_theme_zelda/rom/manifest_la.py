@@ -28,27 +28,48 @@ from bragi_theme_zelda.rom.decoder import SpriteRef
 # rom_addr is a placeholder; fill in from LA disassembly during Task 5b.
 SPRITES_LA: dict[str, SpriteRef] = {
     "marin": SpriteRef(
-        rom_addr=0x68_2A0, tiles_w=2, tiles_h=2, label="Marin",
+        rom_addr=0x68_2A0,
+        tiles_w=2,
+        tiles_h=2,
+        label="Marin",
     ),
     "tarin": SpriteRef(
-        rom_addr=0x68_3E0, tiles_w=2, tiles_h=2, label="Tarin",
+        rom_addr=0x68_3E0,
+        tiles_w=2,
+        tiles_h=2,
+        label="Tarin",
     ),
     "owl": SpriteRef(
-        rom_addr=0x68_520, tiles_w=2, tiles_h=2, label="Owl",
+        rom_addr=0x68_520,
+        tiles_w=2,
+        tiles_h=2,
+        label="Owl",
     ),
     "ulrira": SpriteRef(
-        rom_addr=0x69_120, tiles_w=2, tiles_h=2, label="Grandpa Ulrira",
+        rom_addr=0x69_120,
+        tiles_w=2,
+        tiles_h=2,
+        label="Grandpa Ulrira",
     ),
     # Items (8x8 inventory icons or 16x16 world objects).
     "heart_container": SpriteRef(
-        rom_addr=0x36_4A0, tiles_w=1, tiles_h=1, label="Heart container",
+        rom_addr=0x36_4A0,
+        tiles_w=1,
+        tiles_h=1,
+        label="Heart container",
     ),
     "rupee_green": SpriteRef(
-        rom_addr=0x36_5C0, tiles_w=1, tiles_h=1, label="Rupee (green)",
+        rom_addr=0x36_5C0,
+        tiles_w=1,
+        tiles_h=1,
+        label="Rupee (green)",
     ),
     "owl_statue": SpriteRef(
-        rom_addr=0x4A_280, tiles_w=2, tiles_h=2,
-        transparent_bg=False, label="Owl Statue",
+        rom_addr=0x4A_280,
+        tiles_w=2,
+        tiles_h=2,
+        transparent_bg=False,
+        label="Owl Statue",
     ),
 }
 

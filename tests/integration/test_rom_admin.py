@@ -65,7 +65,9 @@ def test_status_get_with_no_rom_shows_empty_state(app: Flask) -> None:
 
 
 def test_status_get_with_active_rom_shows_sha_and_preview_grid(
-    app: Flask, site: StubSite, tmp_path: Path,
+    app: Flask,
+    site: StubSite,
+    tmp_path: Path,
 ) -> None:
     rom = build_fixture_rom()
     sha = store_rom(rom, attachments_root=tmp_path, site_slug="testsite", game="la")
@@ -82,7 +84,9 @@ def test_status_get_with_active_rom_shows_sha_and_preview_grid(
 
 
 def test_upload_post_with_valid_rom_stores_file_and_sha(
-    app: Flask, site: StubSite, tmp_path: Path,
+    app: Flask,
+    site: StubSite,
+    tmp_path: Path,
 ) -> None:
     rom = build_fixture_rom()
     resp = app.test_client().post(
@@ -101,7 +105,9 @@ def test_upload_post_with_valid_rom_stores_file_and_sha(
 
 
 def test_upload_post_with_invalid_rom_rejects_and_keeps_state_clean(
-    app: Flask, site: StubSite, tmp_path: Path,
+    app: Flask,
+    site: StubSite,
+    tmp_path: Path,
 ) -> None:
     bad = b"not a ROM, just a small text file."
     resp = app.test_client().post(
@@ -131,7 +137,9 @@ def test_upload_post_without_file_returns_error(app: Flask, tmp_path: Path) -> N
 
 
 def test_delete_post_removes_file_and_clears_sha(
-    app: Flask, site: StubSite, tmp_path: Path,
+    app: Flask,
+    site: StubSite,
+    tmp_path: Path,
 ) -> None:
     rom = build_fixture_rom()
     sha = store_rom(rom, attachments_root=tmp_path, site_slug="testsite", game="la")

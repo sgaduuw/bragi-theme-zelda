@@ -36,6 +36,6 @@ def test_palette_indices_are_ordered_lightest_to_darkest() -> None:
 
     for palette in (palettes.PALETTE_DMG, palettes.PALETTE_POCKET):
         lumas = [luma(p) for p in palette]
-        assert lumas == sorted(lumas, reverse=True), (
-            f"palette must go lightest→darkest: {palette}"
-        )
+        assert lumas == sorted(
+            lumas, reverse=True
+        ), f"palette must go lightest→darkest: {palette}"

@@ -61,7 +61,8 @@ def test_no_rom_uploaded_returns_404(app: Flask) -> None:
 
 
 def test_happy_path_returns_png_with_etag_and_cache_control(
-    app: Flask, tmp_path: Path,
+    app: Flask,
+    tmp_path: Path,
 ) -> None:
     rom = build_fixture_rom(tile_at_0x10000=checkerboard_tile())
     store_rom(rom, attachments_root=tmp_path, site_slug="testsite", game="la")
