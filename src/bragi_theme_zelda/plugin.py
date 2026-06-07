@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, ClassVar
 
 import jinja2
-from bragi.api import ThemeSpec, hookimpl
+from bragi.api import AdminNotice, ThemeSpec, hookimpl
 from flask import Flask, g, make_response, redirect, render_template, request
 from werkzeug.wrappers import Response
 
@@ -447,7 +447,39 @@ def register_delivery_blueprint() -> Any:
     return build_rom_blueprint()
 
 
+@hookimpl
+def admin_notices(site: Any) -> list[AdminNotice]:
+    """Surface a ROM-upload nudge in the admin chrome when a zelda-themed
+    site has no ROM uploaded.
+
+    Replaces the broken delivery-side banner from v0.2.0 (which couldn't
+    render because bragi keeps admin and delivery session state on
+    separately-scoped hostnames). The notice now lives in the admin
+    chrome via bragi 1.28.0's admin_notices hookspec.
+    """
+    if getattr(site, "theme", None) != "zelda":
+        return []
+    if site.extra_settings.get("zelda_rom_la_sha256"):
+        return []
+    return [
+        AdminNotice(
+            key="zelda.rom_required",
+            severity="action_required",
+            title="Link's Awakening ROM required",
+            body=(
+                "Character portraits and item sprites fall back to placeholders "
+                "until you upload your ROM."
+            ),
+            cta_label="Upload ROM",
+            cta_endpoint="zelda_admin.upload",
+            cta_endpoint_kwargs={"site_slug": site.slug},
+            dismissible=False,
+        )
+    ]
+
+
 __all__ = [
+    "admin_notices",
     "on_app_init",
     "register_admin_blueprint",
     "register_delivery_blueprint",

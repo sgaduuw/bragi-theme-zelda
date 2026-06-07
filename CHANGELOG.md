@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `admin_notices` hookimpl on the theme plugin: surfaces a
+  `zelda.rom_required` action-required notice on the per-site
+  admin dashboard, sticky rail, and global admin index when a
+  zelda-themed site has no ROM uploaded. Disappears immediately
+  after upload (the ROM upload/delete handlers call
+  `bragi.api.invalidate_admin_notices(site)`).
+- Bumped dev dep on `bragi-cms` to `^1.28` to pick up the new
+  hookspec.
+
 ### Removed
 
 - Delivery-side ROM upload nudge banner (`_rom_banner.html` + `.rom-banner*` CSS).
