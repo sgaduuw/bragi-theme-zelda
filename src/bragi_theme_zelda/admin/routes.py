@@ -27,6 +27,7 @@ from bragi_theme_zelda.rom.cache import _cache_clear
 from bragi_theme_zelda.rom.manifest_la import SPRITES_LA
 from bragi_theme_zelda.rom.upload import (
     RomValidationError,
+    rom_path_for_site,
     store_rom,
     validate_la_rom,
 )
@@ -121,7 +122,14 @@ def build_admin_blueprint(
         return redirect(url_for(".upload", site_slug=site.slug))
 
     def _handle_delete(site: Any):  # type: ignore[no-untyped-def]
-        # Implemented in Task 15.
-        abort(501)
+        attachments_root = Path(current_app.config["BRAGI_ATTACHMENTS_ROOT"])
+        path = rom_path_for_site(attachments_root, site.slug, "la")
+        if path.exists():
+            path.unlink()
+        site.extra_settings.pop("zelda_rom_la_sha256", None)
+        site.save()
+        _cache_clear()
+        flash("ROM removed. Sprites reverted to placeholders.", "success")
+        return redirect(url_for(".upload", site_slug=site.slug))
 
     return bp
