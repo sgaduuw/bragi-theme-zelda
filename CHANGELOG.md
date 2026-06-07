@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-07
+
+### Added
+
+- `claims_root_route` hookimpl on the theme plugin. Returns True
+  for zelda-themed sites so bragi's welcome-fallback detector (in
+  bragi.contrib.admin_notices, available since bragi 1.29.0) does
+  not fire a false-positive "Visitors are seeing the default
+  welcome page" notice on sites where the theme's pause-menu
+  inventory page owns `/`.
+- Bumped dev dep on `bragi-cms` to `^1.29` to pick up the new
+  hookspec.
+
 ## [0.3.1] - 2026-06-07
 
 ### Fixed
