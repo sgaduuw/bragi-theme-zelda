@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from bragi_theme_zelda.template_helpers import make_rom_sprite_helpers
 
 
@@ -22,7 +20,7 @@ def test_rom_sprite_url_with_no_rom_returns_placeholder_path() -> None:
     site = FakeSite()
     _, rom_sprite_url = _helpers(site)
     url = rom_sprite_url("marin", palette="dmg")
-    assert url.startswith("/static/sprites/")
+    assert url.startswith("/theme/zelda/static/sprites/")
     assert url.endswith("marin.png")
 
 
@@ -38,7 +36,7 @@ def test_rom_sprite_with_no_rom_emits_img_to_placeholder() -> None:
     rom_sprite, _ = _helpers(site)
     html = str(rom_sprite("marin", alt="Marin says"))
     assert "<img " in html
-    assert 'src="/static/sprites/' in html and "marin.png" in html
+    assert 'src="/theme/zelda/static/sprites/' in html and "marin.png" in html
     assert 'alt="Marin says"' in html
 
 
@@ -53,8 +51,24 @@ def test_rom_sprite_with_rom_emits_picture_with_both_palettes() -> None:
     assert 'alt="Marin says"' in html
 
 
-def test_rom_sprite_unknown_name_raises_keyerror() -> None:
+def test_rom_sprite_url_unknown_name_falls_back_to_placeholder() -> None:
+    """Decorative-only sprites (la_pearl, kokiri_emerald, etc.) aren't in
+    the manifest. The helper resolves them to the static placeholder
+    path rather than raising — the ROM extraction pipeline cannot
+    produce them regardless of upload state."""
+    site = FakeSite(sha="x" * 64)
+    _, rom_sprite_url = _helpers(site)
+    url = rom_sprite_url("la_pearl")
+    assert url.startswith("/theme/zelda/static/sprites/")
+    assert url.endswith("la_pearl.png")
+
+
+def test_rom_sprite_unknown_name_emits_static_img() -> None:
+    """rom_sprite of a decorative-only sprite renders a plain <img>
+    pointing at the placeholder, no <picture> variants."""
     site = FakeSite(sha="x" * 64)
     rom_sprite, _ = _helpers(site)
-    with pytest.raises(KeyError):
-        rom_sprite("no_such_sprite")
+    html = str(rom_sprite("la_pearl", alt="LA Pearl"))
+    assert "<img " in html
+    assert "<picture>" not in html
+    assert 'src="/theme/zelda/static/sprites/' in html and "la_pearl.png" in html

@@ -67,6 +67,10 @@ def test_textbox_macro_renders(pm: pluggy.PluginManager) -> None:
 
     spec = pm.hook.register_theme()[0]
     env = jinja2.Environment(loader=spec.template_loader, autoescape=True)
+    # The textbox macro references the rom_sprite_url Jinja global for the
+    # portrait background. Wire up the theme's template globals so the
+    # helper is callable from the macro body.
+    pm.hook.register_template_globals(env=env)
     tpl = env.from_string(
         "{% import 'delivery/_callout_textbox.html' as cb %}"
         "{% call cb.textbox('owl') %}<p>Hoot.</p>{% endcall %}"
