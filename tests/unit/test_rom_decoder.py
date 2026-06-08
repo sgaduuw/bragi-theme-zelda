@@ -107,3 +107,73 @@ def test_transparent_bg_keeps_other_indices_opaque() -> None:
     img = render_sprite(rom, ref, PALETTE_DMG)
     r, g, b = PALETTE_DMG[3]
     assert img.getpixel((0, 0)) == (r, g, b, 255)
+
+
+def test_palette_invert_swaps_indices_zero_and_three() -> None:
+    # All-1s tile = all index 3. With palette_invert, render as palette[0]
+    # (lightest), which models the OBP1 vs OBP0 sprite-rendering path.
+    rom = bytes([0xFF] * 16)
+    ref = SpriteRef(
+        rom_addr=0, tiles_w=1, tiles_h=1, transparent_bg=False, palette_invert=True
+    )
+    img = render_sprite(rom, ref, PALETTE_DMG)
+    assert img.getpixel((0, 0)) == PALETTE_DMG[0]
+
+
+def test_palette_invert_keeps_transparency_for_inverted_index_0() -> None:
+    # All-1s tile (index 3) with palette_invert + transparent_bg should
+    # NOT render as transparent: the source index isn't 0, and
+    # transparent_bg keys off the source index (so the OBJ shape stays
+    # intact regardless of which palette entry it ends up using).
+    rom = bytes([0xFF] * 16)
+    ref = SpriteRef(
+        rom_addr=0, tiles_w=1, tiles_h=1, transparent_bg=True, palette_invert=True
+    )
+    img = render_sprite(rom, ref, PALETTE_DMG)
+    r, g, b = PALETTE_DMG[0]
+    assert img.getpixel((0, 0)) == (r, g, b, 255)
+
+
+def test_mirror_right_doubles_width_and_horizontally_mirrors_pixels() -> None:
+    # Tile with the leftmost pixel of each row set to index 1, rest 0.
+    rom = bytes([0x80, 0x00] * 8)
+    ref = SpriteRef(
+        rom_addr=0, tiles_w=1, tiles_h=1, transparent_bg=False, mirror_right=True
+    )
+    img = render_sprite(rom, ref, PALETTE_DMG)
+    assert img.size == (16, 8)
+    # Left half: column 0 is index 1 (lit), columns 1-7 are index 0 (dim).
+    assert img.getpixel((0, 0)) == PALETTE_DMG[1]
+    assert img.getpixel((1, 0)) == PALETTE_DMG[0]
+    # Right half: mirrored — column 8 (last in mirror) is index 0, column
+    # 15 (rightmost on screen) is the mirrored leftmost = index 1.
+    assert img.getpixel((8, 0)) == PALETTE_DMG[0]
+    assert img.getpixel((15, 0)) == PALETTE_DMG[1]
+
+
+def test_vstack_groups_stacks_two_2x2_groups_vertically() -> None:
+    # Two distinct 2x2 groups: first all-index-1, second all-index-3.
+    def tile_all(idx: int) -> bytes:
+        lo = 0xFF if (idx & 1) else 0x00
+        hi = 0xFF if (idx & 2) else 0x00
+        return bytes([lo, hi] * 8)
+
+    group_a = tile_all(1) * 4  # 4 tiles all index 1 (64 bytes)
+    group_b = tile_all(3) * 4  # 4 tiles all index 3 (64 bytes)
+    rom = group_a + group_b
+    ref = SpriteRef(
+        rom_addr=0,
+        tiles_w=2,
+        tiles_h=2,
+        transparent_bg=False,
+        vstack_groups=2,
+    )
+    img = render_sprite(rom, ref, PALETTE_DMG)
+    # 16 wide x 32 tall (two 16x16 groups stacked).
+    assert img.size == (16, 32)
+    # Top half (rows 0-15) renders palette[1]; bottom half (rows 16-31)
+    # renders palette[3].
+    assert img.getpixel((0, 0)) == PALETTE_DMG[1]
+    assert img.getpixel((8, 15)) == PALETTE_DMG[1]
+    assert img.getpixel((0, 16)) == PALETTE_DMG[3]
+    assert img.getpixel((15, 31)) == PALETTE_DMG[3]
