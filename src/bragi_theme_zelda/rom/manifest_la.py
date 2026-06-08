@@ -30,8 +30,18 @@ Two geometry caveats from the research:
   at the base of Npc1Tiles row 34, not the dialogue sprite (tiles
   $7C and $7E, non-contiguous and not extractable as a contiguous
   block).
-- ``owl_statue`` is rendered in-game as a 1-wide x 4-tall column in
-  8x16 OAM mode; tiles_h=4 (rather than 2) matches the actual art.
+- ``owl_statue`` is rendered in-game as a 2-wide x 4-tall column
+  (16x32 px). Extracting 8 tiles in 8x16 OAM column-major order
+  reconstructs the full statue.
+
+LA stores multi-column NPC and item sprites in 8x16 OAM-mode
+column-major order: tiles in ROM are ``[col0_top, col0_bottom,
+col1_top, col1_bottom, ...]`` rather than row-major. Entries with
+``tiles_w >= 2`` therefore set ``oam_8x16=True`` so the decoder
+iterates column-major and the rendered output matches what the game
+displays. v0.4.6 shipped without this flag and rendered the four 2x2
+portraits with their top-right and bottom-left tiles swapped; v0.4.7
+adds the flag and (separately) fixes the item icons' geometries.
 
 Sprite-name convention: lowercase, underscore-separated, matches the
 basename of the corresponding placeholder PNG under
@@ -46,7 +56,7 @@ from __future__ import annotations
 from bragi_theme_zelda.rom.decoder import SpriteRef
 
 SPRITES_LA: dict[str, SpriteRef] = {
-    # Character portraits (16x16 NPC sprites, 2x2 tiles).
+    # Character portraits (16x16 NPC sprites, 2x2 tiles, 8x16 OAM).
     # IndoorEntitySpritesheetsTable group $2F slot 2 = $8F = Npc1Tiles
     # row 15 ($38000 + 15 * $100). Marin's walking-south 2x2 portrait
     # occupies tiles $60-$63 at positions 0-3 of that row.
@@ -54,6 +64,7 @@ SPRITES_LA: dict[str, SpriteRef] = {
         rom_addr=0x38_F00,
         tiles_w=2,
         tiles_h=2,
+        oam_8x16=True,
         label="Marin",
     ),
     # IndoorEntitySpritesheetsTable group $2F slot 3 = $6A = Npc2Tiles
@@ -64,6 +75,7 @@ SPRITES_LA: dict[str, SpriteRef] = {
         rom_addr=0x46_A80,
         tiles_w=2,
         tiles_h=2,
+        oam_8x16=True,
         label="Tarin",
     ),
     # OverworldEntitySpritesheetsTable group $07 slot 3 = $A2 =
@@ -75,6 +87,7 @@ SPRITES_LA: dict[str, SpriteRef] = {
         rom_addr=0x3A_200,
         tiles_w=2,
         tiles_h=2,
+        oam_8x16=True,
         label="Owl",
     ),
     # IndoorEntitySpritesheetsTable group $09 slot 3 = $46 = Npc2Tiles
@@ -84,36 +97,45 @@ SPRITES_LA: dict[str, SpriteRef] = {
         rom_addr=0x44_600,
         tiles_w=2,
         tiles_h=2,
+        oam_8x16=True,
         label="Grandpa Ulrira",
     ),
-    # Items (8x8 inventory icons or 16x16 world objects).
+    # Items.
     # InventoryEquipmentItemsTiles base = bank $0C offset $800 = $30800.
-    # Tile $AA (heart container) at +$2A0; tile $A6 (rupee) at +$260.
-    # DroppableHeartContainerSpriteVariants in bank3.asm references
-    # tile $AA; DroppableRupeeSprite references tile $A6.
+    # Heart container is a 16x16 boss-drop sprite (4 tiles in 8x16 OAM
+    # column-major order: $AA top-left, $AB bottom-left, $AC top-right,
+    # $AD bottom-right) starting at tile $AA = base + $2A0 = $30AA0.
+    # DroppableHeartContainerSpriteVariants in bank3.asm references tile
+    # $AA as the top-left of the 2x2 OAM group.
     "heart_container": SpriteRef(
         rom_addr=0x30_AA0,
-        tiles_w=1,
-        tiles_h=1,
+        tiles_w=2,
+        tiles_h=2,
+        oam_8x16=True,
         label="Heart container",
     ),
+    # Green rupee is an 8x16 drop sprite (2 tiles stacked vertically:
+    # $A6 top, $A7 bottom) at tile $A6 = base + $260 = $30A60. tiles_w=1
+    # means row-major and column-major orderings coincide, so oam_8x16
+    # is a no-op and not set.
     "rupee_green": SpriteRef(
         rom_addr=0x30_A60,
         tiles_w=1,
-        tiles_h=1,
+        tiles_h=2,
         label="Rupee (green)",
     ),
     # IndoorEntitySpritesheetsTable group $07 slot 1 = $91 = Npc1Tiles
-    # row 17 ($38000 + 17 * $100). Owl Statue is rendered as a 1x4
-    # vertical column in 8x16 OAM mode, so tiles_h=4 (not 2) matches
-    # the in-game silhouette. Extraction reads tiles $50-$53 (top half
-    # of the four 8x16 paired chunks $50/$51, $52/$53); rendering as
-    # 1x4 stacks them vertically.
+    # row 17 ($38000 + 17 * $100). Owl Statue is a 16x32 column built
+    # from 8 tiles in 8x16 OAM column-major order: left column
+    # ($50/$51, $52/$53), right column ($54/$55, $56/$57). v0.4.6
+    # shipped as 1x4 (8x32, left column only); v0.4.7 expands to 2x4
+    # (16x32) to recover the full statue width.
     "owl_statue": SpriteRef(
         rom_addr=0x39_100,
-        tiles_w=1,
+        tiles_w=2,
         tiles_h=4,
         transparent_bg=False,
+        oam_8x16=True,
         label="Owl Statue",
     ),
 }
