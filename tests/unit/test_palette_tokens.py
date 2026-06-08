@@ -59,7 +59,7 @@ OOT_LIGHT_TOKENS = {
     "--gb-1": "#2c3a52",
     "--gb-2": "#9da7c4",
     "--gb-3": "#c5cbe0",
-    "--accent-link": "#4a5fa5",
+    "--accent-link": "#3d4f8a",
 }
 
 
