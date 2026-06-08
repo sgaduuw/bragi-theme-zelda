@@ -27,7 +27,13 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.4.9
+## Status: v0.4.10
+
+v0.4.10 is a documentation-only release: drops `triforce_piece` from
+the `template_helpers.py` decorative-only-sprite-name example list
+after a `tile_atlas` scan confirmed LA-1993 has no triforce-shaped
+iconography on-cart (the Triforce isn't featured in LA's storyline;
+the Wind Fish is the mythology). No behaviour change.
 
 v0.4.9 is a small follow-up to v0.4.8 with two additions: the
 LA-section pause-menu tile now extracts a `link_sleeping` sprite
@@ -251,13 +257,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.9
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.10
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.9
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.10
 # That's it. No further pip install step needed.
 ```
 
@@ -276,7 +282,7 @@ for development against an unreleased commit.
 FROM ghcr.io/sgaduuw/bragi-delivery:v1.29.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.9
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.10
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -289,7 +295,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.9
 FROM ghcr.io/sgaduuw/bragi-admin:v1.29.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.9
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.10
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -297,7 +303,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.9
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.4.9 is the current release.
+release; v0.1.0 is git-tag-only. v0.4.10 is the current release.
 
 ## Development
 
