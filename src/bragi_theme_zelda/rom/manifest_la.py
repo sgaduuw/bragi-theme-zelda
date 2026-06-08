@@ -5,50 +5,44 @@ operator-uploaded LA ROM. Adding a new sprite is a theme PR + minor
 version bump, never a ROM re-upload -- the ROM is the operator's data;
 the manifest is the theme's contract.
 
-ROM offsets are absolute byte positions in the .gb file, sourced from
-the LA disassemblies and verified to land on the right tile data:
+ROM offsets, geometries, and per-sprite render flags were tuned in the
+v0.4.6 -> v0.4.8 cycle against a real LA-1993 ROM dump using
+``_claude/scripts/sprite_explore.py``. The exploration found that the
+LA-disassembly-derived spritesheet-group tables (zladx/LADX-Disassembly)
+are *not* ground truth for original-LA: the agent's
+"IndoorEntitySpritesheetsTable group $2F slot 3 = Npc2Tiles row 42 =
+Tarin" was wrong; Tarin actually lives at Npc1Tiles row 14 ($38E00).
+Per-sprite visual verification against the real ROM is the canonical
+check, not the disassembly slot mapping.
 
-- Primary semantic source: github.com/zladx/LADX-Disassembly. That
-  project targets LA DX (1998 GBC) but the NPC tile banks (Npc1Tiles
-  bank $0E, Npc2Tiles bank $11) have identical layout in the original
-  1993 ROM -- the engine added colour but did not reshuffle these
-  banks.
-- Cross-verified against github.com/jverkoey/windfish's
-  ``projects/Links_Awakening_gb.windfish`` (commit
-  7437552 / depth-1 clone). windfish's bank_08.asm contains the same
-  IndoorEntitySpritesheetsTable / OverworldEntitySpritesheetsTable
-  4-byte group entries byte-for-byte, confirming the spritesheet
-  indexing scheme is shared between LA-1993 and LA-DX.
-- Computation: ``rom_addr = bank * 0x4000 + offset_in_bank``. The
-  spritesheet group encoding is ``bbtttttt`` where ``bb`` indexes
-  into NpcTilesBankTable (``$00, $11, $0E, $12``) and ``tttttt`` is
-  the 16-tile row number within the bank; row offset = ``row * 0x100``.
+Five render-time flags on ``SpriteRef`` (decoder.py) capture the
+patterns we observed in the actual ROM data:
 
-Two geometry caveats from the research:
+- ``oam_8x16``: multi-column NPC sprites are stored in 8x16 OAM-mode
+  column-major order (``[col0_top, col0_bot, col1_top, col1_bot]``).
+  Every 2-tile-wide sprite in this manifest sets it.
+- ``mirror_right``: Nintendo stored symmetric sprites as the LEFT half
+  only and used OAM x-flip to draw the right half. The heart container,
+  owl (wings folded), and owl statue (wings spread) all live this way.
+- ``palette_invert``: LA can drive sprites through OBP0 or OBP1; tiles
+  drawn under OBP1 visually invert the palette indices. All four
+  character portraits (Marin, Tarin, Owl, Ulrira) plus both owl-statue
+  variants set this; the items (heart, rupee) don't.
+- ``vstack_groups``: Grandpa Ulrira is taller than 16px and his sprite
+  lives as two adjacent 2x2 OAM groups in ROM that the renderer stacks
+  vertically. He's currently the only consumer.
 
-- ``owl`` extracts the walking sprite (tiles $78-$7B, contiguous 2x2)
-  at the base of Npc1Tiles row 34, not the dialogue sprite (tiles
-  $7C and $7E, non-contiguous and not extractable as a contiguous
-  block).
-- ``owl_statue`` is rendered in-game as a 2-wide x 4-tall column
-  (16x32 px). Extracting 8 tiles in 8x16 OAM column-major order
-  reconstructs the full statue.
-
-LA stores multi-column NPC and item sprites in 8x16 OAM-mode
-column-major order: tiles in ROM are ``[col0_top, col0_bottom,
-col1_top, col1_bottom, ...]`` rather than row-major. Entries with
-``tiles_w >= 2`` therefore set ``oam_8x16=True`` so the decoder
-iterates column-major and the rendered output matches what the game
-displays. v0.4.6 shipped without this flag and rendered the four 2x2
-portraits with their top-right and bottom-left tiles swapped; v0.4.7
-adds the flag and (separately) fixes the item icons' geometries.
+The bonus discoveries from the v0.4.8 exploration -- Link-in-bed
+sprites at ``$38D00`` (sleeping), ``$38D40`` (awake facing camera),
+``$38D80`` (awake facing right) -- are documented in MEMORY.md for
+future expansion (PUSH START splash already uses sleeping-Link
+iconography; the home pause-menu could grow an awake-Link avatar).
+Not in the v0.4.8 manifest.
 
 Sprite-name convention: lowercase, underscore-separated, matches the
 basename of the corresponding placeholder PNG under
-``static/sprites/``. v0.1.6 placeholders use names like "marin",
-"tarin", "owl", "ulrira"; this manifest uses those same names so the
-placeholder-invariant test can assert manifest_keys is a subset of
-existing placeholder filenames.
+``static/sprites/``. The placeholder-invariant test asserts manifest
+keys are a subset of existing placeholder filenames.
 """
 
 from __future__ import annotations
@@ -56,86 +50,91 @@ from __future__ import annotations
 from bragi_theme_zelda.rom.decoder import SpriteRef
 
 SPRITES_LA: dict[str, SpriteRef] = {
-    # Character portraits (16x16 NPC sprites, 2x2 tiles, 8x16 OAM).
-    # IndoorEntitySpritesheetsTable group $2F slot 2 = $8F = Npc1Tiles
-    # row 15 ($38000 + 15 * $100). Marin's walking-south 2x2 portrait
-    # occupies tiles $60-$63 at positions 0-3 of that row.
+    # ----- Character portraits (palette_invert=True on all four) -----
+    # Npc1Tiles row 15 ($38F00) position 0-3, the canonical walking-south
+    # 2x2 portrait of Marin (tiles $60-$63).
     "marin": SpriteRef(
         rom_addr=0x38_F00,
         tiles_w=2,
         tiles_h=2,
         oam_8x16=True,
+        palette_invert=True,
         label="Marin",
     ),
-    # IndoorEntitySpritesheetsTable group $2F slot 3 = $6A = Npc2Tiles
-    # row 42 ($44000 + 42 * $100). Tarin's walking-south portrait sits
-    # at positions 8-11 (tiles $78-$7B), so the 2x2 block starts at
-    # offset +$80 from the row base.
+    # Npc1Tiles row 14 ($38E00) position 0-3, Tarin facing forward.
+    # The agent's slot-table research had pointed at Npc2Tiles row 42;
+    # that turned out to hold the sleep-Z icon, not Tarin. The actual
+    # Tarin sprite shares Npc1Tiles row 14 with the Link-in-bed sprites
+    # (positions 0-3 = Tarin forward, 4-7 = Tarin sleeping, 8-11 =
+    # Tarin facing left). See MEMORY.md 2026-06-08 for the calibration.
     "tarin": SpriteRef(
-        rom_addr=0x46_A80,
+        rom_addr=0x38_E00,
         tiles_w=2,
         tiles_h=2,
         oam_8x16=True,
+        palette_invert=True,
         label="Tarin",
     ),
-    # OverworldEntitySpritesheetsTable group $07 slot 3 = $A2 =
-    # Npc1Tiles row 34 ($38000 + 34 * $100). Owl's walking sprite is
-    # contiguous tiles $78-$7B at positions 0-3. (The dialogue sprite
-    # uses non-contiguous tiles $7C/$7E and cannot be extracted as a
-    # single contiguous block.)
+    # Wings-folded perched owl character ($3A280, position 8 of Npc1Tiles
+    # row 34). Stored as the left half only (1x2 in ROM, mirrored on
+    # render) with OBP1 palette inversion. This is the Wind Fish's
+    # messenger in his iconic "perched on a branch giving advice" pose.
     "owl": SpriteRef(
-        rom_addr=0x3A_200,
-        tiles_w=2,
+        rom_addr=0x3A_280,
+        tiles_w=1,
         tiles_h=2,
-        oam_8x16=True,
+        mirror_right=True,
+        palette_invert=True,
         label="Owl",
     ),
-    # IndoorEntitySpritesheetsTable group $09 slot 3 = $46 = Npc2Tiles
-    # row 6 ($44000 + 6 * $100). Ulrira's walking-south 2x2 portrait
-    # is at positions 0-3 (tiles $70-$73).
+    # Two stacked 2x2 OAM groups at $44600 (Npc2Tiles row 6, positions
+    # 0-3 and 4-7). Ulrira is tall enough that his sprite occupies two
+    # 16x16 chunks vertically; vstack_groups=2 pulls $44600 and $44640
+    # and stacks them. Final image is 16x32.
     "ulrira": SpriteRef(
         rom_addr=0x44_600,
         tiles_w=2,
         tiles_h=2,
         oam_8x16=True,
+        palette_invert=True,
+        vstack_groups=2,
         label="Grandpa Ulrira",
     ),
-    # Items.
-    # InventoryEquipmentItemsTiles base = bank $0C offset $800 = $30800.
-    # Heart container is a 16x16 boss-drop sprite (4 tiles in 8x16 OAM
-    # column-major order: $AA top-left, $AB bottom-left, $AC top-right,
-    # $AD bottom-right) starting at tile $AA = base + $2A0 = $30AA0.
-    # DroppableHeartContainerSpriteVariants in bank3.asm references tile
-    # $AA as the top-left of the 2x2 OAM group.
-    "heart_container": SpriteRef(
-        rom_addr=0x30_AA0,
-        tiles_w=2,
-        tiles_h=2,
-        oam_8x16=True,
-        label="Heart container",
-    ),
-    # Green rupee is an 8x16 drop sprite (2 tiles stacked vertically:
-    # $A6 top, $A7 bottom) at tile $A6 = base + $260 = $30A60. tiles_w=1
-    # means row-major and column-major orderings coincide, so oam_8x16
-    # is a no-op and not set.
+    # ----- Items -----
+    # Green rupee drop sprite at tile $A6 ($30A60). 8x16, two tiles
+    # stacked vertically (top of diamond, bottom of diamond). Not
+    # mirrored — the diamond is symmetric but stored full, presumably
+    # because the rupee in 8x16 OAM mode is a single OAM entry already.
     "rupee_green": SpriteRef(
         rom_addr=0x30_A60,
         tiles_w=1,
         tiles_h=2,
         label="Rupee (green)",
     ),
-    # IndoorEntitySpritesheetsTable group $07 slot 1 = $91 = Npc1Tiles
-    # row 17 ($38000 + 17 * $100). Owl Statue is a 16x32 column built
-    # from 8 tiles in 8x16 OAM column-major order: left column
-    # ($50/$51, $52/$53), right column ($54/$55, $56/$57). v0.4.6
-    # shipped as 1x4 (8x32, left column only); v0.4.7 expands to 2x4
-    # (16x32) to recover the full statue width.
+    # Heart container boss-drop sprite at tile $AA ($30AA0). Left half
+    # only in ROM (1x2 = top-of-heart + bottom-of-heart), mirrored to
+    # render the right half. Items render under OBP0 so no palette
+    # invert.
+    "heart_container": SpriteRef(
+        rom_addr=0x30_AA0,
+        tiles_w=1,
+        tiles_h=2,
+        mirror_right=True,
+        label="Heart container",
+    ),
+    # Wings-spread owl statue at $3A2C0 (position 12 of Npc1Tiles row
+    # 34). The dungeon stone-owl statue in its dramatic wings-out
+    # pose, used as a Stone Beak destination. 2x2 in ROM stored as the
+    # left half (so on-screen 32x16 after mirror). transparent_bg
+    # stays True; the statue is rendered on the overworld with the
+    # background showing through where the sprite has no opaque pixels.
     "owl_statue": SpriteRef(
-        rom_addr=0x39_100,
+        rom_addr=0x3A_2C0,
         tiles_w=2,
-        tiles_h=4,
-        transparent_bg=False,
+        tiles_h=2,
         oam_8x16=True,
+        mirror_right=True,
+        palette_invert=True,
         label="Owl Statue",
     ),
 }

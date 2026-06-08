@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.8] - 2026-06-08
+
+### Fixed
+
+- All seven sprites in `manifest_la.py` now render recognisably. v0.4.7
+  shipped with the correct addresses for some sprites and wrong-but-
+  close addresses for others; v0.4.8 closes the loop via direct
+  visual verification against a real LA-1993 ROM dump.
+- `tarin` re-addressed from Npc2Tiles row 42 (`$46A80`, which actually
+  holds the sleep-Z icon) to Npc1Tiles row 14 position 0 (`$38E00`),
+  the canonical forward-facing portrait. The agent's
+  `IndoorEntitySpritesheetsTable group $2F slot 3` mapping turned out
+  to be wrong for this character; the actual address surfaced from
+  visual scanning against the operator's ROM.
+- `ulrira` re-addressed and re-geometried: now a vertically-stacked
+  pair of 2×2 OAM groups at `$44600` + `$44640`, producing a 16×32
+  Grandpa Ulrira portrait. v0.4.7 read a single 2×2 group at
+  `$44600` and showed almost-blank tiles because Ulrira is taller
+  than 16px and lives across two adjacent OAM groups.
+- `owl` re-addressed from `$3A200` (which held fragments) to `$3A280`,
+  geometry changed from 2×2 to 1×2 + `mirror_right`, palette inverted.
+  Now renders the wings-folded perched-owl pose used in dialogue.
+- `owl_statue` re-addressed from `$39100` to `$3A2C0`, geometry
+  changed from 2×4 to 2×2 + `mirror_right` + `palette_invert`. Now
+  renders the canonical wings-spread Stone Beak statue silhouette.
+- `marin` palette-inverted to match LA's OBP1 sprite-rendering path.
+- `heart_container` geometry changed to 1×2 + `mirror_right` — same
+  pattern as the rupee but mirror-stored, matching Nintendo's
+  OAM-x-flip ROM-saving convention for the symmetric heart.
+
+### Added
+
+- `SpriteRef.mirror_right` (default `False`): manifest declares the
+  LEFT half only; renderer composes the right half via horizontal
+  flip. Final image is `tiles_w * 2 * 8` px wide. Matches LA's
+  ROM-storage convention for symmetric items and characters.
+- `SpriteRef.palette_invert` (default `False`): swap palette indices
+  (0↔3, 1↔2) before any tile decode. Models LA's OBP1 sprite-
+  rendering path; character portraits and stone statues need it.
+- `SpriteRef.vstack_groups` (default `1`): when > 1, the renderer
+  pulls that many consecutive 2×2 OAM groups from offsets
+  `rom_addr + g * 64` and stacks them vertically. Used by Ulrira
+  who occupies two stacked 16×16 groups in ROM.
+- Decoder unit tests for the three new flags.
+- `_claude/scripts/sprite_explore.py`: local sprite-iteration tool
+  that reuses production `render_sprite` and supports edit-and-rerun
+  cycles against the operator's ROM without cutting releases.
+  (Gitignored under `_claude/`.)
+
 ## [0.4.7] - 2026-06-08
 
 ### Fixed
