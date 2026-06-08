@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- ROM-extracted-sprite URLs now mix the installed theme version into
+  the `?v=` cache-buster (`?v=<rom_sha[:12]>-<theme_version>` instead
+  of `?v=<rom_sha[:12]>` only). The response's
+  `Cache-Control: public, max-age=86400, immutable` instructs browsers
+  not to revalidate within 24h, so prior to this fix a manifest change
+  between theme versions (new sprite address, new geometry, new
+  decoder flag) wouldn't auto-invalidate cached PNGs when the
+  operator's ROM hadn't changed. Every theme bump (v0.4.6 → v0.4.7
+  → v0.4.8) required an incognito window to verify. Now a theme
+  upgrade produces a fresh URL automatically. Closes #68.
+
 ## [0.4.8] - 2026-06-08
 
 ### Fixed
