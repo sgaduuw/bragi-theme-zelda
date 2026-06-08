@@ -28,6 +28,21 @@
   --space-md: 1rem;
   --space-lg: 1.5rem;
   --space-xl: 2rem;
+
+  /* Role tokens. Roles map onto the GB palette per mode; see
+   * _claude/specs/2026-06-08-semantic-color-tokens-design.md for
+   * the per-mode resolution table. */
+  --page-bg: var(--gb-3);
+  --page-fg: var(--gb-0);
+  --chrome-bg: var(--gb-1);
+  --chrome-fg: var(--gb-3);
+  --panel-bg: var(--gb-2);
+  --panel-border: var(--gb-0);
+  --panel-label-bg: var(--gb-1);
+  --panel-label-fg: var(--gb-3);
+  --inset-bg: var(--gb-1);
+  --muted-fg: var(--gb-1);
+  --rule-soft: var(--gb-1);
 }
 
 /* ===== Section differentiation: Ocarina of Time ===== */
@@ -55,6 +70,21 @@
     --accent-tip-rule: #e0c060;
     --accent-warn: #d05050;
     --accent-info: #7090c0;
+
+    /* Role rotation: in dark, "darkest palette step" becomes the
+     * page bg (was page fg in light), and vice versa. Mid-tone
+     * roles stay anchored to --gb-1 (mid-dark in both modes). */
+    --page-bg: var(--gb-0);
+    --page-fg: var(--gb-3);
+    --chrome-bg: var(--gb-1);
+    --chrome-fg: var(--gb-3);
+    --panel-bg: var(--gb-1);
+    --panel-border: var(--gb-3);
+    --panel-label-bg: var(--gb-0);
+    --panel-label-fg: var(--gb-3);
+    --inset-bg: var(--gb-1);
+    --muted-fg: var(--gb-2);
+    --rule-soft: var(--gb-2);
   }
   [data-section="oot"] {
     --accent-link: #b4c0e0;
@@ -68,6 +98,17 @@
   --gb-1: #306230;
   --gb-2: #8bac0f;
   --gb-3: #9bbc0f;
+  --page-bg: var(--gb-3);
+  --page-fg: var(--gb-0);
+  --chrome-bg: var(--gb-1);
+  --chrome-fg: var(--gb-3);
+  --panel-bg: var(--gb-2);
+  --panel-border: var(--gb-0);
+  --panel-label-bg: var(--gb-1);
+  --panel-label-fg: var(--gb-3);
+  --inset-bg: var(--gb-1);
+  --muted-fg: var(--gb-1);
+  --rule-soft: var(--gb-1);
 }
 [data-theme="gb-pocket"] {
   color-scheme: dark;
@@ -75,6 +116,17 @@
   --gb-1: #3a3a3a;
   --gb-2: #8a8a8a;
   --gb-3: #c0c0c0;
+  --page-bg: var(--gb-0);
+  --page-fg: var(--gb-3);
+  --chrome-bg: var(--gb-1);
+  --chrome-fg: var(--gb-3);
+  --panel-bg: var(--gb-1);
+  --panel-border: var(--gb-3);
+  --panel-label-bg: var(--gb-0);
+  --panel-label-fg: var(--gb-3);
+  --inset-bg: var(--gb-1);
+  --muted-fg: var(--gb-2);
+  --rule-soft: var(--gb-2);
 }
 
 /* ===== Font face declarations ===== */
