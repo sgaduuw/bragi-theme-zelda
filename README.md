@@ -27,7 +27,25 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.4.7
+## Status: v0.4.8
+
+v0.4.8 closes the v0.4.6 sprite-rendering arc: all seven sprites in
+`manifest_la.py` now render recognisably against a real LA-1993 ROM dump.
+v0.4.6's shipped addresses were correct for some sprites and
+wrong-but-plausibly-close for others; v0.4.7 fixed the decoder's tile
+ordering for 8x16 OAM sprites but didn't move the addresses; v0.4.8
+does direct visual verification against the operator's ROM via a new
+local iteration tool (`_claude/scripts/sprite_explore.py`) and locks
+in addresses + geometries + render flags for each. `SpriteRef` gains
+three flags (`mirror_right`, `palette_invert`, `vstack_groups`)
+capturing the patterns we found in the ROM data: Nintendo's
+mirror-storage trick for symmetric sprites, LA's OBP1 palette path
+for character portraits and stone statues, and tall NPCs that occupy
+two stacked OAM groups. Tarin's offset moved from Npc2Tiles row 42
+(where the agent's slot-table research had pointed -- and where the
+sleep-Z icon actually lives) to Npc1Tiles row 14, the canonical
+forward-facing portrait. Ulrira, owl, and owl-statue all re-addressed
+to match what the game actually draws.
 
 v0.4.7 is a hotfix bundle that makes the v0.4.6 sprite extractions actually
 look like the in-game sprites. Two bugs surfaced on first deploy:
@@ -218,13 +236,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.7
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.8
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.7
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.8
 # That's it. No further pip install step needed.
 ```
 
@@ -243,7 +261,7 @@ for development against an unreleased commit.
 FROM ghcr.io/sgaduuw/bragi-delivery:v1.29.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.7
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.8
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -256,7 +274,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.7
 FROM ghcr.io/sgaduuw/bragi-admin:v1.29.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.7
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.8
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -264,7 +282,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.7
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.4.7 is the current release.
+release; v0.1.0 is git-tag-only. v0.4.8 is the current release.
 
 ## Development
 
