@@ -48,7 +48,9 @@
              register_delivery_blueprint and only exists on the delivery
              app at the site's public hostname, not on the admin host
              where this page renders. #}
-          <img src="//{{ site.hostname }}/zelda/rom/la/dmg/{{ name }}.png?v={{ rom_sha[:12] }}"
+          {# Cache-buster mixes ROM SHA + theme version per #68 so theme upgrades
+             auto-invalidate cached PNGs even when the ROM hasn't changed. #}
+          <img src="//{{ site.hostname }}/zelda/rom/la/dmg/{{ name }}.png?v={{ rom_sha[:12] }}-{{ theme_version }}"
                alt="{{ name }}" loading="lazy">
           <div>{{ name }}</div>
         </div>

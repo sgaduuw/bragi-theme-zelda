@@ -206,10 +206,12 @@ After installing the theme, visit:
 uploaded, the theme falls back to the v0.1.6 placeholder PNGs; logged-in site editors see a
 nudge banner pointing at the upload page.
 
-The delivery URL `/zelda/rom/la/<palette>/<sprite>.png?v=<sha[:12]>` exposes the provenance
-directly: the `rom` segment makes clear the PNG is live-extracted, the palette segment selects
-DMG (4-greens) or GB Pocket greyscale, and the `?v=` cache-buster automatically invalidates
-browser/CDN caches whenever the ROM is swapped.
+The delivery URL `/zelda/rom/la/<palette>/<sprite>.png?v=<sha[:12]>-<theme_version>` exposes
+the provenance directly: the `rom` segment makes clear the PNG is live-extracted, the palette
+segment selects DMG (4-greens) or GB Pocket greyscale, and the `?v=` cache-buster automatically
+invalidates browser/CDN caches whenever the ROM is swapped OR the theme is upgraded (theme
+upgrades can change the manifest's addresses, geometries, and render flags, so URLs need to
+auto-invalidate even when the operator's ROM stays the same).
 
 ### Template helpers
 
