@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.7] - 2026-06-08
+
+### Fixed
+
+- Multi-column NPC sprites no longer render with their top-right and
+  bottom-left 8x8 tiles swapped. LA stores 16x16 character portraits in
+  8x16 OAM-mode column-major order (`[TL, BL, TR, BR]` in ROM); v0.4.6
+  shipped without accounting for that and read them row-major. `SpriteRef`
+  now carries an `oam_8x16: bool = False` flag; the four character
+  portraits (Marin, Tarin, Owl, Grandpa Ulrira) plus the heart container
+  and owl statue set it and render correctly. The decoder default stays
+  row-major so existing decoder tests and any future single-tile or
+  single-column extractions are unaffected.
+- `heart_container` geometry corrected from 1x1 to 2x2 (16x16 boss-drop
+  sprite, 4 tiles in 8x16 OAM column-major order at `$30AA0`); v0.4.6
+  rendered only the top-left 8x8 quarter of the icon.
+- `rupee_green` geometry corrected from 1x1 to 1x2 (8x16 drop sprite,
+  2 tiles stacked vertically at `$30A60`); v0.4.6 rendered only the
+  top half of the diamond. Single-column so the new `oam_8x16` flag is
+  a no-op and not set.
+- `owl_statue` geometry expanded from 1x4 to 2x4 (16x32, 8 tiles in
+  8x16 OAM column-major order at `$39100`); v0.4.6 rendered only the
+  left 8-pixel-wide column of the statue.
+
 ## [0.4.6] - 2026-06-08
 
 ### Changed
