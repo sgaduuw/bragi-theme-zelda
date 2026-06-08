@@ -261,7 +261,7 @@ def _home_tiles_for(site: Any) -> list[dict[str, str]]:
             "slug": "links-awakening",
             "title": "Link's Awakening",
             "url": "/links-awakening/",
-            "sprite": "la_pearl",
+            "sprite": "link_sleeping",
         },
         {
             "slug": "ocarina-of-time",
