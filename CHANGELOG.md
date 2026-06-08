@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New `link_sleeping` sprite at ROM offset `$38D00` (Npc1Tiles row 13
+  position 0, the iconic LA-cold-open frame of Link asleep in bed).
+  Eighth entry in `SPRITES_LA`. The pause-menu home now extracts this
+  for the Link's Awakening section tile instead of falling back to
+  the static `la_pearl` placeholder; the `cosplay.js`
+  item-acquired-on-section-transition motif likewise upgrades from
+  `la_pearl` to `link_sleeping`. Surfaced during the v0.4.8 sprite
+  exploration as a bonus discovery (documented in MEMORY.md at the
+  time, promoted to the manifest in v0.4.9). Placeholder PNG at
+  `static/sprites/items/link_sleeping.png` ships for sites that
+  haven't uploaded a ROM yet.
+
 ### Fixed
 
 - ROM-extracted-sprite URLs now mix the installed theme version into
