@@ -32,12 +32,12 @@ patterns we observed in the actual ROM data:
   lives as two adjacent 2x2 OAM groups in ROM that the renderer stacks
   vertically. He's currently the only consumer.
 
-The bonus discoveries from the v0.4.8 exploration -- Link-in-bed
-sprites at ``$38D00`` (sleeping), ``$38D40`` (awake facing camera),
-``$38D80`` (awake facing right) -- are documented in MEMORY.md for
-future expansion (PUSH START splash already uses sleeping-Link
-iconography; the home pause-menu could grow an awake-Link avatar).
-Not in the v0.4.8 manifest.
+v0.4.8's exploration surfaced three Link-in-bed sprites in Npc1Tiles
+row 13. v0.4.9 promotes the sleeping variant (``$38D00``) to
+``link_sleeping`` as the LA-section emblem on the pause-menu home,
+replacing the static ``la_pearl`` placeholder. The awake variants at
+``$38D40`` (facing camera) and ``$38D80`` (facing right) remain
+documented in MEMORY.md for future use; not in this manifest.
 
 Sprite-name convention: lowercase, underscore-separated, matches the
 basename of the corresponding placeholder PNG under
@@ -60,6 +60,20 @@ SPRITES_LA: dict[str, SpriteRef] = {
         oam_8x16=True,
         palette_invert=True,
         label="Marin",
+    ),
+    # Npc1Tiles row 13 ($38D00) position 0-3, Link asleep in bed. This
+    # is the LA-section emblem on the pause-menu home (the iconic LA
+    # cold-open frame); v0.4.8 found this address while scanning for
+    # Tarin and noted it in MEMORY.md as a bonus discovery. v0.4.9
+    # promotes it to a first-class manifest entry, replacing the
+    # static ``la_pearl`` placeholder that shipped through v0.4.8.
+    "link_sleeping": SpriteRef(
+        rom_addr=0x38_D00,
+        tiles_w=2,
+        tiles_h=2,
+        oam_8x16=True,
+        palette_invert=True,
+        label="Link sleeping",
     ),
     # Npc1Tiles row 14 ($38E00) position 0-3, Tarin facing forward.
     # The agent's slot-table research had pointed at Npc2Tiles row 42;

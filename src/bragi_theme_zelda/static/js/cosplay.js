@@ -140,7 +140,7 @@
 
   // Maps html[data-section] -> {sprite, label}. New section = add a row.
   var ITEM_FOR_SECTION = {
-    "la":  { sprite: "la_pearl",        label: "LINK'S AWAKENING GUIDE" },
+    "la":  { sprite: "link_sleeping",   label: "LINK'S AWAKENING GUIDE" },
     "oot": { sprite: "kokiri_emerald",  label: "OCARINA OF TIME GUIDE" }
   };
 
