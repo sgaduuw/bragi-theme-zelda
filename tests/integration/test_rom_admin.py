@@ -1,37 +1,30 @@
 """Integration tests for the admin ROM upload Blueprint.
 
-These tests stand up a minimal Flask app with the blueprint mounted
-(no bragi admin app or DB), and inject a stub ``current_site()`` helper
-via the blueprint factory.
+Stands up a real bragi admin app via ``bragi_admin_app_with_zelda_site``
+(in ``tests/conftest.py``) so the tests exercise real CSRF middleware,
+real chrome inheritance, real auth, and real DB writes via the
+production ``_persist_site_extra_setting`` helper. The previous
+stub-app fixture missed two production bugs (#38 — template wasn't
+extending ``admin/base.html``; #39 — forms lacked ``_csrf_token``)
+that v0.3.1 hotfixed; this migration closes #43 by removing the
+stub. See spec at
+``_claude/specs/2026-06-08-real-admin-app-fixture-design.md``.
 """
 
 from __future__ import annotations
 
 import io
 from pathlib import Path
-from typing import Any
 
-import jinja2
 import pytest
+from bragi.core.models.site import Site
 from flask import Flask
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from bragi_theme_zelda.admin.routes import build_admin_blueprint
 from bragi_theme_zelda.rom.cache import _cache_clear
 from bragi_theme_zelda.rom.upload import rom_path_for_site, store_rom
-from tests.data.rom_fixtures import build_fixture_rom
-
-
-class StubSite:
-    """Minimal Site stand-in for tests."""
-
-    def __init__(self, slug: str = "testsite") -> None:
-        self.slug = slug
-        self.id = 1
-        # Used by zelda_rom.html's preview-grid <img> URLs, which are
-        # cross-host (admin → delivery host) since the ROM delivery
-        # blueprint is delivery-only.
-        self.hostname = "testsite.example"
-        self.extra_settings: dict[str, str] = {}
+from tests.conftest import csrf_token, login_editor
 
 
 @pytest.fixture(autouse=True)
@@ -39,78 +32,40 @@ def clear_cache() -> None:
     _cache_clear()
 
 
-@pytest.fixture
-def site() -> StubSite:
-    return StubSite()
+def _authed_client_with_csrf(
+    admin_app: Flask,
+    site_slug: str,
+    editor_email: str,
+    editor_password: str,
+) -> tuple[object, str, str]:
+    """Build an authed test client + a fresh CSRF token for the upload URL.
+
+    Returns ``(client, token, upload_path)``. The CSRF token is bound
+    to the session and rotated per-request; fetching it AFTER login
+    via a GET on the upload URL itself gives a token the upload POST
+    will accept.
+    """
+    client = admin_app.test_client()
+    login_editor(client, editor_email, editor_password)
+    upload_path = f"/admin/sites/{site_slug}/zelda/rom/upload"
+    token = csrf_token(client, path=upload_path)
+    return client, token, upload_path
 
 
-@pytest.fixture
-def app(
+def test_status_get_with_no_rom_shows_empty_state(
+    bragi_admin_app_with_zelda_site: tuple[Flask, str, str, str],
     tmp_path: Path,
-    site: StubSite,
     monkeypatch: pytest.MonkeyPatch,
-) -> Flask:
-    # Theme reads bragi.settings.settings.attachments_root for the storage
-    # path. Pin it at tmp_path so each test gets a clean attachments dir,
-    # matching what the production bragi admin app would resolve from env.
+) -> None:
     from bragi.settings import settings as bragi_settings
 
     monkeypatch.setattr(bragi_settings, "attachments_root", str(tmp_path))
 
-    # Theme's _persist_site_extra_setting opens a real bragi SessionLocal
-    # to write to the Site.extra_settings JSON column. Stub it to mutate
-    # the StubSite directly so tests can assert on site.extra_settings
-    # without standing up a real bragi DB. The real-admin-app fixture
-    # path (issue #43) will exercise the production code instead.
-    from bragi_theme_zelda.admin import routes as zelda_admin_routes
+    app, slug, email, password = bragi_admin_app_with_zelda_site
+    client = app.test_client()
+    login_editor(client, email, password)
 
-    def _stub_persist(site_obj: Any, key: str, value: str | None) -> None:
-        if value is None:
-            site_obj.extra_settings.pop(key, None)
-        else:
-            site_obj.extra_settings[key] = value
-
-    monkeypatch.setattr(
-        zelda_admin_routes,
-        "_persist_site_extra_setting",
-        _stub_persist,
-    )
-
-    flask_app = Flask(__name__, template_folder=None)
-    flask_app.config["TESTING"] = True
-    flask_app.config["SECRET_KEY"] = "test-secret"  # flask.flash needs sessions
-    flask_app.register_blueprint(
-        build_admin_blueprint(
-            current_site=lambda _slug: site,
-            require_role=lambda _role, _site_id: None,
-        ),
-    )
-    # The zelda_rom.html template extends "admin/base.html" (bragi's admin
-    # chrome) and calls csrf_token() (bragi's CSRF middleware). The real
-    # admin app provides both; this stub provides minimal stand-ins so the
-    # template renders. Asserting on chrome shape or real CSRF rejection is
-    # a separate concern covered by the contrib tests that exercise the
-    # real bragi admin app.
-    flask_app.jinja_env.loader = jinja2.ChoiceLoader(
-        [
-            flask_app.jinja_env.loader,
-            jinja2.DictLoader(
-                {
-                    "admin/base.html": (
-                        "<!doctype html><html><head>"
-                        "<title>{% block title %}{% endblock %}</title>"
-                        "</head><body>{% block content %}{% endblock %}</body></html>"
-                    ),
-                },
-            ),
-        ],
-    )
-    flask_app.jinja_env.globals["csrf_token"] = lambda: "test-csrf-token"
-    return flask_app
-
-
-def test_status_get_with_no_rom_shows_empty_state(app: Flask) -> None:
-    resp = app.test_client().get("/admin/sites/testsite/zelda/rom/upload")
+    resp = client.get(f"/admin/sites/{slug}/zelda/rom/upload")
     assert resp.status_code == 200
     body = resp.data.decode()
     assert "No ROM uploaded" in body
@@ -118,121 +73,246 @@ def test_status_get_with_no_rom_shows_empty_state(app: Flask) -> None:
 
 
 def test_status_get_with_active_rom_shows_sha_and_preview_grid(
-    app: Flask,
-    site: StubSite,
+    bragi_admin_app_with_zelda_site: tuple[Flask, str, str, str],
+    db_session: Session,
     tmp_path: Path,
+    fixture_rom_bytes: bytes,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    rom = build_fixture_rom()
-    sha = store_rom(rom, attachments_root=tmp_path, site_slug="testsite", game="la")
-    site.extra_settings["zelda_rom_la_sha256"] = sha
+    from bragi.settings import settings as bragi_settings
 
-    resp = app.test_client().get("/admin/sites/testsite/zelda/rom/upload")
+    monkeypatch.setattr(bragi_settings, "attachments_root", str(tmp_path))
+
+    app, slug, email, password = bragi_admin_app_with_zelda_site
+
+    # Pre-seed the file + the SHA via the production helpers + a
+    # direct DB write (not exercising the upload code path here, just
+    # the GET render with a ROM already present).
+    sha = store_rom(
+        fixture_rom_bytes,
+        attachments_root=tmp_path,
+        site_slug=slug,
+        game="la",
+    )
+    site_row = db_session.execute(
+        select(Site).where(Site.slug == slug),
+    ).scalar_one()
+    site_row.extra_settings = {"zelda_rom_la_sha256": sha}
+    db_session.commit()
+
+    client = app.test_client()
+    login_editor(client, email, password)
+
+    resp = client.get(f"/admin/sites/{slug}/zelda/rom/upload")
     assert resp.status_code == 200
     body = resp.data.decode()
     assert "ROM active" in body
-    assert sha[:12] in body  # truncated SHA shown
-    # Preview grid should reference each manifest sprite.
+    assert sha[:12] in body
     for name in ("marin", "tarin", "owl", "ulrira", "heart_container"):
         assert name in body
-    # Preview URLs target the delivery host (admin and delivery are
-    # separately-scoped hosts in bragi's two-app split; the ROM extraction
-    # route is delivery-only).
-    assert "//testsite.example/zelda/rom/la/dmg/marin.png" in body
+    # Cross-host preview URL (v0.4.4): admin host vs delivery host.
+    assert f"//{site_row.hostname}/zelda/rom/la/dmg/marin.png" in body
 
 
 def test_upload_post_with_valid_rom_stores_file_and_sha(
-    app: Flask,
-    site: StubSite,
+    bragi_admin_app_with_zelda_site: tuple[Flask, str, str, str],
+    db_session: Session,
     tmp_path: Path,
+    fixture_rom_bytes: bytes,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    rom = build_fixture_rom()
-    resp = app.test_client().post(
-        "/admin/sites/testsite/zelda/rom/upload",
+    from bragi.settings import settings as bragi_settings
+
+    monkeypatch.setattr(bragi_settings, "attachments_root", str(tmp_path))
+
+    app, slug, email, password = bragi_admin_app_with_zelda_site
+    client, token, upload_path = _authed_client_with_csrf(app, slug, email, password)
+
+    resp = client.post(
+        upload_path,
         data={
             "action": "upload",
-            "rom": (io.BytesIO(rom), "la.gb"),
+            "_csrf_token": token,
+            "rom": (io.BytesIO(fixture_rom_bytes), "la.gb"),
         },
         content_type="multipart/form-data",
         follow_redirects=False,
     )
-    assert resp.status_code in (302, 303)  # redirect after POST
-    assert rom_path_for_site(tmp_path, "testsite", "la").read_bytes() == rom
-    assert site.extra_settings.get("zelda_rom_la_sha256") is not None
-    assert len(site.extra_settings["zelda_rom_la_sha256"]) == 64
+    assert resp.status_code in (302, 303)
+    assert rom_path_for_site(tmp_path, slug, "la").read_bytes() == fixture_rom_bytes
+
+    site_row = db_session.execute(
+        select(Site).where(Site.slug == slug),
+    ).scalar_one()
+    db_session.refresh(site_row)
+    sha = site_row.extra_settings.get("zelda_rom_la_sha256")
+    assert sha is not None
+    assert len(sha) == 64
 
 
 def test_upload_post_with_invalid_rom_rejects_and_keeps_state_clean(
-    app: Flask,
-    site: StubSite,
+    bragi_admin_app_with_zelda_site: tuple[Flask, str, str, str],
+    db_session: Session,
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    from bragi.settings import settings as bragi_settings
+
+    monkeypatch.setattr(bragi_settings, "attachments_root", str(tmp_path))
+
+    app, slug, email, password = bragi_admin_app_with_zelda_site
+    client, token, upload_path = _authed_client_with_csrf(app, slug, email, password)
+
     bad = b"not a ROM, just a small text file."
-    resp = app.test_client().post(
-        "/admin/sites/testsite/zelda/rom/upload",
+    resp = client.post(
+        upload_path,
         data={
             "action": "upload",
+            "_csrf_token": token,
             "rom": (io.BytesIO(bad), "fake.gb"),
         },
         content_type="multipart/form-data",
         follow_redirects=False,
     )
-    # Either re-renders the form (200) or redirects (302) with a flash.
     assert resp.status_code in (200, 302, 303)
-    assert not rom_path_for_site(tmp_path, "testsite", "la").exists()
-    assert "zelda_rom_la_sha256" not in site.extra_settings
+    assert not rom_path_for_site(tmp_path, slug, "la").exists()
+
+    site_row = db_session.execute(
+        select(Site).where(Site.slug == slug),
+    ).scalar_one()
+    db_session.refresh(site_row)
+    assert "zelda_rom_la_sha256" not in site_row.extra_settings
 
 
-def test_upload_post_without_file_returns_error(app: Flask, tmp_path: Path) -> None:
-    resp = app.test_client().post(
-        "/admin/sites/testsite/zelda/rom/upload",
-        data={"action": "upload"},
+def test_upload_post_without_file_returns_error(
+    bragi_admin_app_with_zelda_site: tuple[Flask, str, str, str],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from bragi.settings import settings as bragi_settings
+
+    monkeypatch.setattr(bragi_settings, "attachments_root", str(tmp_path))
+
+    app, slug, email, password = bragi_admin_app_with_zelda_site
+    client, token, upload_path = _authed_client_with_csrf(app, slug, email, password)
+
+    resp = client.post(
+        upload_path,
+        data={"action": "upload", "_csrf_token": token},
         content_type="multipart/form-data",
         follow_redirects=False,
     )
     assert resp.status_code in (200, 302, 303, 400)
-    assert not rom_path_for_site(tmp_path, "testsite", "la").exists()
+    assert not rom_path_for_site(tmp_path, slug, "la").exists()
 
 
 def test_upload_post_with_oversize_body_returns_413(
-    app: Flask,
+    bragi_admin_app_with_zelda_site: tuple[Flask, str, str, str],
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Regression: oversize uploads must 413 before buffering the body.
 
-    Defends against admin-worker OOM (issue #26): the cap is checked
-    via Content-Length before any request.files access. Posting 8 MiB
+    Defends against admin-worker OOM (#26): the cap is checked via
+    Content-Length before any ``request.files`` access. Posting 8 MiB
     of arbitrary bytes (well past the 4 MiB ROM cap + 64 KiB envelope
     margin) must return 413 and never write a file.
     """
+    from bragi.settings import settings as bragi_settings
+
+    monkeypatch.setattr(bragi_settings, "attachments_root", str(tmp_path))
+
+    app, slug, email, password = bragi_admin_app_with_zelda_site
+    client, token, upload_path = _authed_client_with_csrf(app, slug, email, password)
+
     oversize = b"\x00" * (8 * 1024 * 1024)
-    resp = app.test_client().post(
-        "/admin/sites/testsite/zelda/rom/upload",
+    resp = client.post(
+        upload_path,
         data={
             "action": "upload",
+            "_csrf_token": token,
             "rom": (io.BytesIO(oversize), "huge.gb"),
         },
         content_type="multipart/form-data",
         follow_redirects=False,
     )
     assert resp.status_code == 413
-    assert not rom_path_for_site(tmp_path, "testsite", "la").exists()
+    assert not rom_path_for_site(tmp_path, slug, "la").exists()
 
 
 def test_delete_post_removes_file_and_clears_sha(
-    app: Flask,
-    site: StubSite,
+    bragi_admin_app_with_zelda_site: tuple[Flask, str, str, str],
+    db_session: Session,
     tmp_path: Path,
+    fixture_rom_bytes: bytes,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    rom = build_fixture_rom()
-    sha = store_rom(rom, attachments_root=tmp_path, site_slug="testsite", game="la")
-    site.extra_settings["zelda_rom_la_sha256"] = sha
+    from bragi.settings import settings as bragi_settings
 
-    resp = app.test_client().post(
-        "/admin/sites/testsite/zelda/rom/upload",
-        data={"action": "delete"},
+    monkeypatch.setattr(bragi_settings, "attachments_root", str(tmp_path))
+
+    app, slug, email, password = bragi_admin_app_with_zelda_site
+
+    # Pre-seed: ROM file present + sha in DB.
+    sha = store_rom(
+        fixture_rom_bytes,
+        attachments_root=tmp_path,
+        site_slug=slug,
+        game="la",
+    )
+    site_row = db_session.execute(
+        select(Site).where(Site.slug == slug),
+    ).scalar_one()
+    site_row.extra_settings = {"zelda_rom_la_sha256": sha}
+    db_session.commit()
+
+    client, token, upload_path = _authed_client_with_csrf(app, slug, email, password)
+
+    resp = client.post(
+        upload_path,
+        data={"action": "delete", "_csrf_token": token},
         content_type="multipart/form-data",
         follow_redirects=False,
     )
     assert resp.status_code in (302, 303)
-    assert not rom_path_for_site(tmp_path, "testsite", "la").exists()
-    assert "zelda_rom_la_sha256" not in site.extra_settings
+    assert not rom_path_for_site(tmp_path, slug, "la").exists()
+
+    db_session.refresh(site_row)
+    assert "zelda_rom_la_sha256" not in site_row.extra_settings
+
+
+def test_upload_post_without_csrf_token_is_rejected(
+    bragi_admin_app_with_zelda_site: tuple[Flask, str, str, str],
+    tmp_path: Path,
+    fixture_rom_bytes: bytes,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Closes #43 directly: if a form drops ``_csrf_token``, CI fails.
+
+    Guards against the v0.3.0 / v0.3.1 regression class (#39) — a
+    future template change that omits the CSRF hidden input would
+    have passed the stub-fixture tests (no CSRF middleware) but
+    failed in production. The real fixture + real CSRF middleware now
+    reject the POST.
+    """
+    from bragi.settings import settings as bragi_settings
+
+    monkeypatch.setattr(bragi_settings, "attachments_root", str(tmp_path))
+
+    app, slug, email, password = bragi_admin_app_with_zelda_site
+    client = app.test_client()
+    login_editor(client, email, password)
+    upload_path = f"/admin/sites/{slug}/zelda/rom/upload"
+
+    resp = client.post(
+        upload_path,
+        data={
+            "action": "upload",
+            "rom": (io.BytesIO(fixture_rom_bytes), "la.gb"),
+        },
+        content_type="multipart/form-data",
+        follow_redirects=False,
+    )
+    # CSRF middleware on bragi's admin app rejects without a token.
+    assert resp.status_code in (400, 403)
+    assert not rom_path_for_site(tmp_path, slug, "la").exists()
