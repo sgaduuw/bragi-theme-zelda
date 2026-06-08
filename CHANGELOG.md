@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Dark-mode body links were rendering as light grey on light grey
+  (`--accent-link` `#a8a8c8` on the page background `#c0c0c0`,
+  ~1.3:1 contrast, well below WCAG AA's 4.5:1). Root cause was a
+  deeper architectural inversion: the page bg/fg pair picked the
+  wrong end of the GB palette in dark mode, rendering "dark mode"
+  as a light-grey page with near-black text instead of the "light
+  grey on near-black" intent recorded in CONTEXT.md "Why GB
+  Pocket greyscale, not invert". Fixed by introducing semantic
+  role tokens (`--page-bg`, `--page-fg`, etc.) that each mode
+  sets independently of the palette ordering; dark mode now
+  points `--page-bg` at the darkest palette step, so links sit
+  at ~8.6:1 against the new bg.
+- OoT-section light-mode links (`--accent-link` `#4a5fa5` on the
+  OoT page bg `#c5cbe0`) were at ~3.7:1, below WCAG AA. Darkened
+  to `#3d4f8a` (~4.8:1) preserving the royal-blue feel.
+
+### Changed
+
+- `theme.css` migrated from consuming `--gb-N` palette tokens
+  directly to consuming semantic role tokens (`--page-bg`,
+  `--page-fg`, `--chrome-bg`, `--chrome-fg`, `--panel-bg`,
+  `--panel-border`, `--panel-label-bg`, `--panel-label-fg`,
+  `--inset-bg`, `--muted-fg`, `--rule-soft`). 64 of 81 rule
+  references migrated; 17 stay palette-literal (borders, pixel
+  ornaments, and deliberate inverted callouts like
+  `.section-pill`, `.brand-tile`, hover-flips, the push-start
+  splash and item-acquired standalone overlays). Visible effect
+  in dark mode: page flips from light-grey-with-dark-text to
+  near-black-with-light-text, matching the CONTEXT.md intent.
+  Light-mode pages are unchanged apart from the OoT link
+  darken noted above.
+
 ## [0.4.10] - 2026-06-08
 
 ### Changed
