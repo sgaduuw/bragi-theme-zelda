@@ -22,11 +22,34 @@ ROM-extracted regardless of whether a ROM is uploaded.
 from __future__ import annotations
 
 from collections.abc import Callable
+from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
 from markupsafe import Markup, escape
 
 from bragi_theme_zelda.rom.manifest_la import SPRITES_LA
+
+try:
+    THEME_VERSION: str = version("bragi-theme-zelda")
+except PackageNotFoundError:
+    # Editable / source-checkout fallback; only reachable before
+    # `poetry install` records the dist-info. Tests run after install
+    # so they get the real version.
+    THEME_VERSION = "dev"
+
+
+def _cache_buster(rom_sha: str) -> str:
+    """Compose the ``?v=`` value mixing ROM SHA and theme version.
+
+    Closes #68: the previous ``?v={sha[:12]}`` invalidated browser
+    cache on ROM swap but not on theme upgrade. Manifest changes
+    between theme versions (addresses, geometries, render flags)
+    produce different PNG bytes at the same URL; with
+    ``Cache-Control: ..., immutable`` browsers would serve the old
+    bytes for 24h. Adding the theme version makes every theme bump
+    auto-invalidate the relevant URLs.
+    """
+    return f"{rom_sha[:12]}-{THEME_VERSION}"
 
 
 def make_rom_sprite_helpers(
@@ -61,7 +84,7 @@ def make_rom_sprite_helpers(
         sha = site.extra_settings.get("zelda_rom_la_sha256")
         if not sha:
             return _placeholder_path(name)
-        return f"/zelda/rom/la/{palette}/{name}.png?v={sha[:12]}"
+        return f"/zelda/rom/la/{palette}/{name}.png?v={_cache_buster(sha)}"
 
     def rom_sprite(name: str, alt: str = "") -> Markup:
         safe_alt = escape(alt)
@@ -75,7 +98,7 @@ def make_rom_sprite_helpers(
         if not sha:
             src = _placeholder_path(name)
             return Markup(f'<img src="{src}" alt="{safe_alt}" class="rom-sprite">')
-        v = sha[:12]
+        v = _cache_buster(sha)
         dark_src = f"/zelda/rom/la/pocket/{name}.png?v={v}"
         light_src = f"/zelda/rom/la/dmg/{name}.png?v={v}"
         return Markup(

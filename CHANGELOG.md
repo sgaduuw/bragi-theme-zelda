@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.9] - 2026-06-08
+
+### Added
+
+- New `link_sleeping` sprite at ROM offset `$38D00` (Npc1Tiles row 13
+  position 0, the iconic LA-cold-open frame of Link asleep in bed).
+  Eighth entry in `SPRITES_LA`. The pause-menu home now extracts this
+  for the Link's Awakening section tile instead of falling back to
+  the static `la_pearl` placeholder; the `cosplay.js`
+  item-acquired-on-section-transition motif likewise upgrades from
+  `la_pearl` to `link_sleeping`. Surfaced during the v0.4.8 sprite
+  exploration as a bonus discovery (documented in MEMORY.md at the
+  time, promoted to the manifest in v0.4.9). Placeholder PNG at
+  `static/sprites/items/link_sleeping.png` ships for sites that
+  haven't uploaded a ROM yet.
+
+### Fixed
+
+- ROM-extracted-sprite URLs now mix the installed theme version into
+  the `?v=` cache-buster (`?v=<rom_sha[:12]>-<theme_version>` instead
+  of `?v=<rom_sha[:12]>` only). The response's
+  `Cache-Control: public, max-age=86400, immutable` instructs browsers
+  not to revalidate within 24h, so prior to this fix a manifest change
+  between theme versions (new sprite address, new geometry, new
+  decoder flag) wouldn't auto-invalidate cached PNGs when the
+  operator's ROM hadn't changed. Every theme bump (v0.4.6 → v0.4.7
+  → v0.4.8) required an incognito window to verify. Now a theme
+  upgrade produces a fresh URL automatically. Closes #68.
+
 ## [0.4.8] - 2026-06-08
 
 ### Fixed

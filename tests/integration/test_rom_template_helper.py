@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from bragi_theme_zelda.template_helpers import make_rom_sprite_helpers
+from bragi_theme_zelda.template_helpers import THEME_VERSION, make_rom_sprite_helpers
 
 
 class FakeSite:
@@ -28,7 +28,22 @@ def test_rom_sprite_url_with_rom_returns_extraction_url_with_v_query() -> None:
     site = FakeSite(sha="49aa12bd6a32" + "0" * 52)
     _, rom_sprite_url = _helpers(site)
     url = rom_sprite_url("marin", palette="dmg")
-    assert url == "/zelda/rom/la/dmg/marin.png?v=49aa12bd6a32"
+    assert url == f"/zelda/rom/la/dmg/marin.png?v=49aa12bd6a32-{THEME_VERSION}"
+
+
+def test_rom_sprite_url_cache_buster_includes_theme_version() -> None:
+    """Closes #68: a theme upgrade that changes the manifest must
+    auto-invalidate any browser-cached PNGs even when the operator's
+    ROM SHA is unchanged. Mixing the theme version into the ``?v=``
+    value is what produces a fresh URL on every theme bump."""
+    site = FakeSite(sha="49aa12bd6a32" + "0" * 52)
+    _, rom_sprite_url = _helpers(site)
+    url = rom_sprite_url("marin", palette="dmg")
+    assert "?v=49aa12bd6a32-" in url
+    assert url.endswith(THEME_VERSION)
+    # The theme version is non-trivial (so a future "dev"/empty fallback
+    # doesn't silently regress the cache invalidation).
+    assert len(THEME_VERSION) >= 3
 
 
 def test_rom_sprite_with_no_rom_emits_img_to_placeholder() -> None:
@@ -46,8 +61,8 @@ def test_rom_sprite_with_rom_emits_picture_with_both_palettes() -> None:
     html = str(rom_sprite("marin", alt="Marin says"))
     assert "<picture>" in html
     assert 'media="(prefers-color-scheme: dark)"' in html
-    assert "/zelda/rom/la/pocket/marin.png?v=49aa12bd6a32" in html
-    assert "/zelda/rom/la/dmg/marin.png?v=49aa12bd6a32" in html
+    assert f"/zelda/rom/la/pocket/marin.png?v=49aa12bd6a32-{THEME_VERSION}" in html
+    assert f"/zelda/rom/la/dmg/marin.png?v=49aa12bd6a32-{THEME_VERSION}" in html
     assert 'alt="Marin says"' in html
 
 

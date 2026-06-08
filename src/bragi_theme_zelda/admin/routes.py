@@ -33,6 +33,7 @@ from bragi_theme_zelda.rom.upload import (
     store_rom,
     validate_la_rom,
 )
+from bragi_theme_zelda.template_helpers import THEME_VERSION
 
 SiteResolver = Callable[[str], Any]
 RoleChecker = Callable[[str, int], None]
@@ -104,6 +105,7 @@ def build_admin_blueprint(
             site=site,
             rom_sha=site.extra_settings.get("zelda_rom_la_sha256"),
             sprite_names=list(SPRITES_LA.keys()),
+            theme_version=THEME_VERSION,
         )
 
     def _handle_post(site: Any):  # type: ignore[no-untyped-def]
