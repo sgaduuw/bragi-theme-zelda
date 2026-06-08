@@ -27,7 +27,19 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.4.8
+## Status: v0.4.9
+
+v0.4.9 is a small follow-up to v0.4.8 with two additions: the
+LA-section pause-menu tile now extracts a `link_sleeping` sprite
+(`$38D00`, Npc1Tiles row 13 position 0 — the iconic LA cold-open
+frame) from the operator's ROM instead of falling back to a static
+`la_pearl` placeholder; and the cache-buster on every ROM-extracted
+PNG URL now mixes the installed theme version (`?v=<sha[:12]>-<theme_version>`)
+so manifest changes between theme upgrades auto-invalidate cached
+browser/CDN copies. The latter scratches an itch that bit operator
+verification across the v0.4.6 → v0.4.7 → v0.4.8 cycle — incognito
+windows are no longer required to see fresh PNGs after a theme bump.
+Eighth sprite in the manifest; no new `SpriteRef` flags.
 
 v0.4.8 closes the v0.4.6 sprite-rendering arc: all seven sprites in
 `manifest_la.py` now render recognisably against a real LA-1993 ROM dump.
@@ -227,7 +239,8 @@ Two Jinja globals are exposed for use in custom templates:
 ~~~
 
 Sprite names available since v0.2.0: `marin`, `tarin`, `owl`, `ulrira`,
-`heart_container`, `rupee_green`, `owl_statue`.
+`heart_container`, `rupee_green`, `owl_statue`. v0.4.9 adds
+`link_sleeping`.
 
 ## Installing
 
@@ -238,13 +251,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.8
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.9
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.8
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.9
 # That's it. No further pip install step needed.
 ```
 
@@ -263,7 +276,7 @@ for development against an unreleased commit.
 FROM ghcr.io/sgaduuw/bragi-delivery:v1.29.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.8
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.9
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -276,7 +289,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.8
 FROM ghcr.io/sgaduuw/bragi-admin:v1.29.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.8
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.9
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -284,7 +297,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.8
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.4.8 is the current release.
+release; v0.1.0 is git-tag-only. v0.4.9 is the current release.
 
 ## Development
 
