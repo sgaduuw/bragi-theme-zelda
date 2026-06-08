@@ -27,7 +27,24 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.4.10
+## Status: v0.4.11
+
+v0.4.11 fixes dark-mode body-link contrast: the page was rendering as
+near-black text on light grey instead of the CONTEXT.md-stated "light
+grey on near-black" GB Pocket palette, leaving `--accent-link` `#a8a8c8`
+on the `#c0c0c0` page bg at ~1.3:1 (well below WCAG AA's 4.5:1). Root
+cause was that `theme.css` consumed the `--gb-N` palette directly and
+the palette-to-role mapping (which step is the page bg, which is text)
+didn't rotate in dark mode. Fixed by introducing semantic role tokens
+(`--page-bg`, `--page-fg`, `--chrome-bg`, `--chrome-fg`, `--panel-bg`,
+`--panel-border`, `--panel-label-bg`, `--panel-label-fg`, `--inset-bg`,
+`--muted-fg`, `--rule-soft`) that each mode sets independently of the
+palette ordering; dark mode now renders as near-black-with-light-text
+and body links sit at ~8.6:1. Same release tightens OoT-section
+light-mode `--accent-link` from `#4a5fa5` to `#3d4f8a` (was ~3.7:1, now
+~4.8:1) and migrates `test_rom_admin.py` off its stub Flask fixture
+onto bragi's real `create_admin_app()` (#43) so future CSRF and
+admin-chrome regressions fail CI instead of slipping into production.
 
 v0.4.10 is a documentation-only release: drops `triforce_piece` from
 the `template_helpers.py` decorative-only-sprite-name example list
@@ -257,13 +274,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.10
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.11
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.10
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.11
 # That's it. No further pip install step needed.
 ```
 
@@ -282,7 +299,7 @@ for development against an unreleased commit.
 FROM ghcr.io/sgaduuw/bragi-delivery:v1.29.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.10
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.11
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -295,7 +312,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.10
 FROM ghcr.io/sgaduuw/bragi-admin:v1.29.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.10
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.11
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -303,7 +320,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.10
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.4.10 is the current release.
+release; v0.1.0 is git-tag-only. v0.4.11 is the current release.
 
 ## Development
 
