@@ -50,6 +50,18 @@ class SpriteRef:
         (alpha 0) so the sprite can be composited over arbitrary
         backgrounds. Set to ``False`` for tiles meant to be opaque
         (e.g. tilemap chunks used as standalone art).
+    oam_8x16
+        LA stores multi-column NPC sprites in 8x16 OAM-mode column-major
+        order: tiles in ROM are ``[col0_top, col0_bot, col1_top,
+        col1_bot, ...]`` (vertical pair first, then move right). The
+        default ``False`` keeps the historical row-major iteration
+        (``tile_idx = ty * tiles_w + tx``) used by single-tile and
+        single-column extractions and by the fixture-based decoder
+        tests. Set ``True`` on multi-column sprites authored in 8x16
+        OAM mode (i.e. virtually every LA character portrait and most
+        item icons) to swap to column-major iteration; for
+        ``tiles_w == 1`` the two orderings are identical so the flag
+        is a no-op.
     label
         Human-readable label for the admin sprite-preview grid.
     """
@@ -58,15 +70,19 @@ class SpriteRef:
     tiles_w: int
     tiles_h: int
     transparent_bg: bool = True
+    oam_8x16: bool = False
     label: str = ""
 
 
 def render_sprite(rom: bytes, ref: SpriteRef, palette: Palette) -> Image.Image:
-    """Compose a multi-tile sprite from its row-major 8x8 tiles.
+    """Compose a multi-tile sprite from its 8x8 tiles.
 
-    Tiles are laid out in the ROM as a contiguous run starting at
-    ``ref.rom_addr``, in row-major order: top-left, top-right,
-    bottom-left, bottom-right for a 2x2 sprite.
+    Tiles live as a contiguous run starting at ``ref.rom_addr``. The
+    in-ROM ordering depends on ``ref.oam_8x16``: when ``False``
+    (default), tiles are read row-major (TL, TR, BL, BR for a 2x2);
+    when ``True``, column-major (TL, BL, TR, BR), matching LA's 8x16
+    OAM-mode storage convention for character portraits and most
+    item icons.
     """
     w, h = ref.tiles_w * 8, ref.tiles_h * 8
     mode = "RGBA" if ref.transparent_bg else "RGB"
@@ -76,7 +92,10 @@ def render_sprite(rom: bytes, ref: SpriteRef, palette: Palette) -> Image.Image:
 
     for ty in range(ref.tiles_h):
         for tx in range(ref.tiles_w):
-            tile_idx = ty * ref.tiles_w + tx
+            if ref.oam_8x16:
+                tile_idx = tx * ref.tiles_h + ty
+            else:
+                tile_idx = ty * ref.tiles_w + tx
             tile_addr = ref.rom_addr + tile_idx * 16
             tile = render_tile(rom, tile_addr)
             for y in range(8):
