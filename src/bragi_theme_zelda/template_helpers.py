@@ -13,9 +13,9 @@ so they share a site-lookup callable:
 The factory pattern keeps the helpers testable without Flask globals.
 
 Names not in :data:`SPRITES_LA` (decorative-only sprites like
-``la_pearl``, ``kokiri_emerald``, ``triforce_piece``) fall back to the
-static placeholder path rather than raising. Anything ROM-extractable
-is in the manifest by construction; anything outside it can never be
+``la_pearl`` and ``kokiri_emerald``) fall back to the static
+placeholder path rather than raising. Anything ROM-extractable is in
+the manifest by construction; anything outside it can never be
 ROM-extracted regardless of whether a ROM is uploaded.
 """
 
