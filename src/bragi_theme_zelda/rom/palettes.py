@@ -34,4 +34,4 @@ PALETTES: dict[str, Palette] = {
     "pocket": PALETTE_POCKET,
 }
 
-__all__ = ["Palette", "Rgb", "PALETTE_DMG", "PALETTE_POCKET", "PALETTES"]
+__all__ = ["PALETTES", "PALETTE_DMG", "PALETTE_POCKET", "Palette", "Rgb"]

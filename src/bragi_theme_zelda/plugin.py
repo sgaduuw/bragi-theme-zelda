@@ -206,7 +206,7 @@ def register_template_globals(env: jinja2.Environment) -> None:
 
 
 @hookimpl(hookwrapper=True)
-def resolve_home(site: Any) -> Generator[None, None, None]:
+def resolve_home(site: Any) -> Generator[None]:
     """Pause-menu inventory grid wins at `/` when site.theme == 'zelda'.
 
     Implemented as a hookwrapper rather than a regular `@hookimpl` because
@@ -510,7 +510,7 @@ __all__ = [
     "on_app_init",
     "register_admin_blueprint",
     "register_delivery_blueprint",
-    "register_theme",
     "register_template_globals",
+    "register_theme",
     "resolve_home",
 ]

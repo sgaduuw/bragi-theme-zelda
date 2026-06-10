@@ -122,7 +122,7 @@ def patched_session_locals(
 @pytest.fixture
 def bragi_app_with_theme(
     patched_session_locals: sessionmaker[Session],
-) -> Generator[Flask, None, None]:
+) -> Generator[Flask]:
     """A minimal bragi delivery app with this theme registered.
 
     Used by tests/contrib/ and tests/integration/. The delivery app
@@ -159,7 +159,7 @@ def fixture_rom_path(tmp_path: Path, fixture_rom_bytes: bytes) -> Path:
 def bragi_admin_app_with_zelda_site(
     db_session: Session,
     patched_session_locals: sessionmaker[Session],
-) -> Generator[tuple[Flask, str, str, str], None, None]:
+) -> Generator[tuple[Flask, str, str, str]]:
     """Real bragi admin app + a zelda-themed test site + an editor user.
 
     Yields ``(admin_app, site_slug, editor_email, editor_password)``.
