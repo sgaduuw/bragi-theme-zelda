@@ -350,19 +350,19 @@ release; v0.1.0 is git-tag-only. v0.4.12 is the current release.
 ### Prerequisites
 
 - Python 3.14+
-- [Poetry](https://python-poetry.org/)
+- [uv](https://docs.astral.sh/uv/)
 
 ### Install
 
 ```sh
-poetry install
+uv sync
 ```
 
 ### Run against a bragi dev checkout (editable install)
 
 ```sh
 # From this project's directory, install into bragi's venv as an editable package:
-cd ../bragi && poetry run pip install -e ../bragi-theme-zelda
+( cd ../bragi && uv run pip install -e ../bragi-theme-zelda )
 
 # Then in bragi's working tree, point the Zelda site's theme to "zelda"
 # via the admin UI or CLI, and reload the delivery process to pick up template changes.
@@ -372,16 +372,16 @@ cd ../bragi && poetry run pip install -e ../bragi-theme-zelda
 
 ```sh
 # Run the test suite
-poetry run pytest
+uv run pytest
 
 # Lint
-poetry run ruff check src/ tests/
+uv run ruff check src/ tests/
 
 # Format-check
-poetry run ruff format --check src/ tests/
+uv run ruff format --check src/ tests/
 
 # Type-check
-poetry run mypy src/
+uv run mypy src/
 ```
 
 ## License
