@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.4.12] - 2026-06-10
+
+### Added
+
+- `.github/workflows/bragi-released-rebuild.yml` rebuilds the
+  variant images against the new bragi base on every
+  `bragi-released` dispatch, in parallel with the existing
+  dispatcher PR workflow. Two new tag shapes published on
+  `bragi-admin-zelda` / `bragi-delivery-zelda`:
+  `:bragi-tracking` (mutable, follows latest+latest) and
+  `:vX.Y.Z-bragi-vA.B.C` (immutable, one per theme/bragi combo).
+  Operators can now pull a bragi-refreshed variant image without
+  waiting for a theme release cut. Existing `:vX.Y.Z` tags set
+  by `release.yml` on theme cuts are untouched.
+
+### Changed
+
+- Bumps bragi base from v1.29.0 to v1.30.0 (PR #80, dispatched
+  by bragi's `notify-themes` job on bragi v1.30.0 release).
+  Carries bragi's bulk-delete admin affordance on Posts, Pages,
+  and Attachments list pages. See bragi CHANGELOG 1.30.0 for the
+  full base-image change set.
+
 ## [0.4.11] - 2026-06-08
 
 ### Fixed
