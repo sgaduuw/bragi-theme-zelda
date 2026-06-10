@@ -42,9 +42,9 @@ def csrf_token(client: FlaskClient, *, path: str = "/auth/login") -> str:
     client.get(path)
     with client.session_transaction() as sess:
         token = sess.get("_csrf_token")
-    assert (
-        isinstance(token, str) and token
-    ), "CSRF token was not populated on the session"
+    assert isinstance(token, str) and token, (
+        "CSRF token was not populated on the session"
+    )
     return token
 
 
@@ -64,8 +64,7 @@ def login_editor(
         data={"email": email, "password": password, "_csrf_token": token},
     )
     assert resp.status_code in (302, 303), (
-        f"Login did not redirect (got {resp.status_code}); "
-        f"body: {resp.data[:200]!r}"
+        f"Login did not redirect (got {resp.status_code}); body: {resp.data[:200]!r}"
     )
 
 
