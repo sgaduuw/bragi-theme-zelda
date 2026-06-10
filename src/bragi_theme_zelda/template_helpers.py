@@ -33,7 +33,7 @@ try:
     THEME_VERSION: str = version("bragi-theme-zelda")
 except PackageNotFoundError:
     # Editable / source-checkout fallback; only reachable before
-    # `poetry install` records the dist-info. Tests run after install
+    # `uv sync` records the dist-info. Tests run after install
     # so they get the real version.
     THEME_VERSION = "dev"
 
