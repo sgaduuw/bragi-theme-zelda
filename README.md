@@ -27,7 +27,15 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.4.11
+## Status: v0.4.12
+
+v0.4.12 is an infrastructure PATCH: a new
+`bragi-released-rebuild.yml` workflow publishes the variant
+images against a fresh bragi base on every `bragi-released`
+dispatch, no theme release cut required. Two new tag shapes
+appear alongside `:vX.Y.Z`: `:bragi-tracking` (mutable, follows
+the latest theme + latest bragi) and `:vX.Y.Z-bragi-vA.B.C`
+(immutable, one per combo). Bumps bragi base to v1.30.0.
 
 v0.4.11 fixes dark-mode body-link contrast: the page was rendering as
 near-black text on light grey instead of the CONTEXT.md-stated "light
@@ -274,13 +282,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.11
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.12
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.11
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.12
 # That's it. No further pip install step needed.
 ```
 
@@ -289,7 +297,7 @@ from the public delivery path. Restart both after installation to pick up the pl
 
 Three tag shapes are published on the variant images:
 
-- `:vX.Y.Z` (e.g. `:v0.4.11`) is immutable: the variant exactly as it shipped at the
+- `:vX.Y.Z` (e.g. `:v0.4.12`) is immutable: the variant exactly as it shipped at the
   X.Y.Z theme release, against whichever bragi base was pinned in the Dockerfile at
   that release. The right pin for operators who want their tag honest to source releases
   only.
@@ -297,7 +305,7 @@ Three tag shapes are published on the variant images:
   most-recent bragi release". Rebuilt on every `bragi-released` dispatch, no theme release
   required. `docker pull` picks up the refresh. Right pin for operators who want bragi
   releases to flow through automatically.
-- `:vX.Y.Z-bragi-vA.B.C` (e.g. `:v0.4.11-bragi-v1.30.0`) is immutable: one tag per
+- `:vX.Y.Z-bragi-vA.B.C` (e.g. `:v0.4.12-bragi-v1.30.0`) is immutable: one tag per
   (theme, bragi) combination, published whenever the rebuild workflow fires. Right pin
   when you want a specific combo retroactively, or want to roll back without re-pinning
   the theme version.
@@ -311,10 +319,10 @@ for development against an unreleased commit.
 #### Delivery container
 
 ```dockerfile
-FROM ghcr.io/sgaduuw/bragi-delivery:v1.29.0
+FROM ghcr.io/sgaduuw/bragi-delivery:v1.30.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.11
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.12
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -324,10 +332,10 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.11
 #### Admin container
 
 ```dockerfile
-FROM ghcr.io/sgaduuw/bragi-admin:v1.29.0
+FROM ghcr.io/sgaduuw/bragi-admin:v1.30.0
 
 # Install from PyPI (pin to a specific version).
-RUN pip install --no-cache-dir bragi-theme-zelda==0.4.11
+RUN pip install --no-cache-dir bragi-theme-zelda==0.4.12
 
 # For development against an unreleased commit, use the git+https form instead:
 # RUN pip install --no-cache-dir \
@@ -335,7 +343,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.11
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.4.11 is the current release.
+release; v0.1.0 is git-tag-only. v0.4.12 is the current release.
 
 ## Development
 
