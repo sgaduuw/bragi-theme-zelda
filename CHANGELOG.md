@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.12] - 2026-06-10
+
 ### Added
 
 - `.github/workflows/bragi-released-rebuild.yml` rebuilds the
@@ -19,6 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Operators can now pull a bragi-refreshed variant image without
   waiting for a theme release cut. Existing `:vX.Y.Z` tags set
   by `release.yml` on theme cuts are untouched.
+
+### Changed
+
+- Bumps bragi base from v1.29.0 to v1.30.0 (PR #80, dispatched
+  by bragi's `notify-themes` job on bragi v1.30.0 release).
+  Carries bragi's bulk-delete admin affordance on Posts, Pages,
+  and Attachments list pages. See bragi CHANGELOG 1.30.0 for the
+  full base-image change set.
 
 ## [0.4.11] - 2026-06-08
 
