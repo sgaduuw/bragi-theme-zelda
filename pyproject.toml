@@ -26,10 +26,10 @@ dev = [
     # bragi ships on PyPI as `bragi-cms` from v1.27.0 (Pillow precedent:
     # distribution name differs from import name; `bragi` PyPI name is held by
     # Managarm). Import path is unchanged: `from bragi.api import ...`.
-    "bragi-cms>=1.29,<2",
-    "ruff>=0.6,<0.7",
-    "mypy>=1.11,<2",
-    "pytest>=8.0,<9",
+    "bragi-cms>=1.30,<2",
+    "ruff>=0.15.14,<0.16",
+    "mypy>=1.18,<2",
+    "pytest>=9.0.3,<10",
     "fonttools>=4.63.0,<5",
     "brotli>=1.2.0,<2",
 ]
@@ -43,8 +43,7 @@ packages = ["src/bragi_theme_zelda"]
 
 [tool.ruff]
 line-length = 88
-# ruff 0.6.x tops out at py313; bump when upgrading ruff past 0.7.
-target-version = "py313"
+target-version = "py314"
 src = ["src", "tests"]
 
 [tool.ruff.lint]

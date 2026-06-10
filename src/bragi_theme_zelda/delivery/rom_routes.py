@@ -79,7 +79,7 @@ def build_rom_blueprint() -> Blueprint:
                 palette=palette,
                 sprite_name=sprite_name,
             )
-        except (KeyError, OSError, IndexError):
+        except KeyError, OSError, IndexError:
             abort(404)
 
         etag = f'"sha256:{hashlib.sha256(png_bytes).hexdigest()}"'
