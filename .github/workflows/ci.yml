@@ -20,27 +20,30 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          # 3.14 matches pyproject.toml's `^3.14` constraint and the
+          # 3.14 matches pyproject.toml's `>=3.14,<4` constraint and the
           # local runtime. GHA ships stable 3.14 pre-built images.
           python-version: "3.14"
 
-      - name: Install Poetry
-        run: pipx install poetry
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-ansi
+        run: uv sync --frozen
 
       - name: Lint
-        run: poetry run ruff check src/ tests/
+        run: uv run ruff check src/ tests/
 
       - name: Format check
-        run: poetry run ruff format --check src/ tests/
+        run: uv run ruff format --check src/ tests/
 
       - name: Type check
-        run: poetry run mypy src/
+        run: uv run mypy src/
 
       - name: Unit + contrib tests
-        run: poetry run pytest tests/unit/ tests/contrib/ -v
+        run: uv run pytest tests/unit/ tests/contrib/ -v
 
       - name: Integration tests
-        run: poetry run pytest tests/integration/ -v
+        run: uv run pytest tests/integration/ -v
