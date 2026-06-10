@@ -1,41 +1,45 @@
-[tool.poetry]
+[project]
 name = "bragi-theme-zelda"
 version = "0.4.12"
 description = "Link's-Awakening-flavoured theme for the bragi CMS, used by zelda.eelcowesemann.nl"
-authors = ["Eelco Wesemann <6771014+sgaduuw@users.noreply.github.com>"]
+authors = [{name = "Eelco Wesemann", email = "6771014+sgaduuw@users.noreply.github.com"}]
 license = "MIT"
 readme = "README.md"
-packages = [{ include = "bragi_theme_zelda", from = "src" }]
-include = [
-    "src/bragi_theme_zelda/templates/**/*",
-    "src/bragi_theme_zelda/static/**/*",
+requires-python = ">=3.14,<4"
+dependencies = [
+    # jinja2 is imported directly by plugin.py (PackageLoader, Environment type).
+    # bragi is the host app and is always present in the deployment environment;
+    # it stays a dev dep so the published wheel has no runtime dep on bragi:
+    # the consumer container has bragi installed already.
+    "jinja2>=3.1,<4.0",
+    # Pillow provides PIL.Image, used by rom.decoder to render 2bpp tiles into
+    # PNG bytes at request time. Runtime dep because the delivery route depends
+    # on it for every sprite extraction.
+    "pillow>=12.2,<13.0",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.14"
-# jinja2 is imported directly by plugin.py (PackageLoader, Environment type).
-# bragi is the host app and is always present in the deployment environment;
-# it stays a dev dep so the published wheel has no runtime dep on bragi —
-# the consumer container has bragi installed already.
-jinja2 = "^3.1"
-# Pillow provides PIL.Image, used by rom.decoder to render 2bpp tiles into
-# PNG bytes at request time. Runtime dep because the delivery route depends
-# on it for every sprite extraction.
-pillow = "^12.2"
-
-[tool.poetry.group.dev.dependencies]
-# bragi ships on PyPI as `bragi-cms` from v1.27.0 (Pillow precedent:
-# distribution name differs from import name; `bragi` PyPI name is held by
-# Managarm). Import path is unchanged: `from bragi.api import ...`.
-bragi-cms = "^1.29"
-ruff = "^0.6"
-mypy = "^1.11"
-pytest = "^8.0"
-fonttools = "^4.63.0"
-brotli = "^1.2.0"
-
-[tool.poetry.plugins."bragi.plugins"]
+[project.entry-points."bragi.plugins"]
 theme_zelda = "bragi_theme_zelda.plugin"
+
+[dependency-groups]
+dev = [
+    # bragi ships on PyPI as `bragi-cms` from v1.27.0 (Pillow precedent:
+    # distribution name differs from import name; `bragi` PyPI name is held by
+    # Managarm). Import path is unchanged: `from bragi.api import ...`.
+    "bragi-cms>=1.29,<2",
+    "ruff>=0.6,<0.7",
+    "mypy>=1.11,<2",
+    "pytest>=8.0,<9",
+    "fonttools>=4.63.0,<5",
+    "brotli>=1.2.0,<2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bragi_theme_zelda"]
 
 [tool.ruff]
 line-length = 88
@@ -67,7 +71,3 @@ disable_error_code = ["untyped-decorator"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
