@@ -1,0 +1,98 @@
+name: Rebuild variant images against new bragi base
+
+# Fired by bragi's notify-themes job (release.yml) via repository_dispatch,
+# in parallel with bragi-released.yml.
+#
+# bragi-released.yml opens a PR that lands the new bragi pin in develop's
+# source, so the NEXT theme release ships against it. This workflow
+# rebuilds the most-recent theme release immediately against the new
+# bragi base and pushes to a decoupled tag set, so operators get the
+# refreshed image without waiting for a theme release cut.
+#
+# Tag policy:
+# - :bragi-tracking            mutable, always points at "most-recent
+#                              theme source release rebuilt against
+#                              most-recent bragi release". `docker pull`
+#                              picks up the refresh.
+# - :vX.Y.Z-bragi-vA.B.C       immutable, one per (theme, bragi) combo.
+#                              Audit-friendly, pin-friendly.
+#
+# Existing :vX.Y.Z tags (set by release.yml on theme cuts) remain
+# untouched; operators wanting pinning honest to source releases only
+# keep that path. See _claude/CONTEXT.md "Container deploy" for the
+# full rationale.
+
+on:
+  repository_dispatch:
+    types: [bragi-released]
+
+jobs:
+  rebuild-variant:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: [admin, delivery]
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Resolve theme version from latest published release
+        id: theme
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          TAG="$(gh release view --json tagName --jq .tagName)"
+          if [ -z "${TAG}" ] || [ "${TAG}" = "null" ]; then
+            echo "No published theme release found; nothing to rebuild." >&2
+            exit 1
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Resolve new bragi version from dispatch payload
+        id: bragi
+        env:
+          NEW: ${{ github.event.client_payload.version }}
+        run: |
+          if [ -z "${NEW}" ]; then
+            echo "client_payload.version is empty; aborting" >&2
+            exit 1
+          fi
+          echo "version=${NEW}" >> "${GITHUB_OUTPUT}"
+
+      - name: Check out the latest theme release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.theme.outputs.tag }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/${{ matrix.image }}.Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            BRAGI_VERSION=${{ steps.bragi.outputs.version }}
+            THEME_VERSION=${{ steps.theme.outputs.version }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/bragi-${{ matrix.image }}-zelda:bragi-tracking
+            ghcr.io/${{ github.repository_owner }}/bragi-${{ matrix.image }}-zelda:v${{ steps.theme.outputs.version }}-bragi-v${{ steps.bragi.outputs.version }}
