@@ -287,6 +287,21 @@ FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.11
 Both containers need the package so template lookups work from the admin preview path and
 from the public delivery path. Restart both after installation to pick up the plugin.
 
+Three tag shapes are published on the variant images:
+
+- `:vX.Y.Z` (e.g. `:v0.4.11`) is immutable: the variant exactly as it shipped at the
+  X.Y.Z theme release, against whichever bragi base was pinned in the Dockerfile at
+  that release. The right pin for operators who want their tag honest to source releases
+  only.
+- `:bragi-tracking` is mutable: always points at "most-recent theme release rebuilt against
+  most-recent bragi release". Rebuilt on every `bragi-released` dispatch, no theme release
+  required. `docker pull` picks up the refresh. Right pin for operators who want bragi
+  releases to flow through automatically.
+- `:vX.Y.Z-bragi-vA.B.C` (e.g. `:v0.4.11-bragi-v1.30.0`) is immutable: one tag per
+  (theme, bragi) combination, published whenever the rebuild workflow fires. Right pin
+  when you want a specific combo retroactively, or want to roll back without re-pinning
+  the theme version.
+
 ### Fallback: downstream Dockerfile from PyPI
 
 Use this form when you need a different bragi base version than the one pinned in the
