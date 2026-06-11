@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.13] - 2026-06-11
+
+### Changed
+
+- Bumps bragi base from v1.30.0 to v1.31.0 (PR #87, dispatched
+  by bragi's `notify-themes` job on bragi v1.31.0 release).
+  Carries bragi's Python 3.14 floor and the runtime-dep refresh
+  (gunicorn 26, argon2-cffi 25, markdown-it-py 4,
+  mdit-py-plugins 0.6, markdownify 1.2) into the variant images.
+  See bragi CHANGELOG 1.31.0 for the full base-image change set.
+
 ## [0.4.12] - 2026-06-10
 
 ### Added
