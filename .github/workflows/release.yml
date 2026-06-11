@@ -25,11 +25,11 @@ jobs:
         with:
           python-version: "3.14"
 
-      - name: Install Poetry
-        run: pipx install poetry
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
 
       - name: Build sdist + wheel
-        run: poetry build
+        run: uv build
 
       - name: Verify build artefacts
         run: |
@@ -59,6 +59,20 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # The propagation gate below uses `python3 -m pip download` to
+      # probe resolvability. pip honours the `Requires-Python`
+      # constraint on the simple index: ubuntu-latest currently ships
+      # Python 3.12.3 by default, and bragi-theme-zelda's
+      # `requires-python` is `>=3.14,<4`. Without an explicit Python,
+      # pip silently refuses to resolve the just-published wheel and
+      # the error reads identical to a propagation lag (the bragi
+      # v1.31.0 incident burned hours on this before the diagnostic
+      # workflow surfaced it). Pin a Python that satisfies the floor;
+      # bump in lockstep if bragi-theme-zelda's floor moves.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
       - name: Resolve version from release tag
         id: version
         run: |
@@ -67,20 +81,33 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
-      # PyPI's JSON endpoint returns 200 well before `pip install` can resolve
-      # the wheel from every CDN node. Bragi's release.yml uses 60 iterations
-      # (120s); mirror that here. The Dockerfile's pip install will retry,
-      # but a clean poll first keeps the build log readable.
+      # PyPI's JSON metadata endpoint serves 200 well before `pip
+      # install` can resolve the wheel from every CDN node; the old
+      # curl-against-JSON probe surfaced "reachable" while the
+      # downstream Dockerfile `pip install` still failed (v0.4.11
+      # post-mortem; portfolio MEMORY 2026-06-06). Probe with pip
+      # itself so the gate exercises the same resolver path the
+      # docker build is about to take. 1800s (180 x 10s) matches
+      # bragi's release.yml budget after the v1.31.0 incident.
       - name: Wait for PyPI propagation
         run: |
-          for i in $(seq 1 60); do
-            if curl -fsSI "https://pypi.org/pypi/bragi-theme-zelda/${{ steps.version.outputs.version }}/json" > /dev/null 2>&1; then
-              echo "bragi-theme-zelda==${{ steps.version.outputs.version }} reachable on PyPI"
+          VERSION="${{ steps.version.outputs.version }}"
+          for i in $(seq 1 180); do
+            rm -rf /tmp/pypi-check
+            mkdir -p /tmp/pypi-check
+            if python3 -m pip download \
+                --no-deps \
+                --quiet \
+                --dest /tmp/pypi-check \
+                "bragi-theme-zelda==${VERSION}" 2>/dev/null; then
+              echo "bragi-theme-zelda==${VERSION} resolvable on PyPI (attempt ${i})"
+              rm -rf /tmp/pypi-check
               exit 0
             fi
-            sleep 2
+            echo "attempt ${i}: bragi-theme-zelda==${VERSION} not yet resolvable on PyPI"
+            sleep 10
           done
-          echo "PyPI did not surface bragi-theme-zelda==${{ steps.version.outputs.version }} after 120s"
+          echo "PyPI did not surface bragi-theme-zelda==${VERSION} after 1800s; check publish-pypi step output and re-run this job"
           exit 1
 
       - name: Set up QEMU

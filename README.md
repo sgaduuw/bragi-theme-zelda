@@ -27,7 +27,15 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.4.12
+## Status: v0.4.13
+
+v0.4.13 bumps the bragi base from v1.30.0 to v1.31.0, carrying
+bragi's Python 3.14 floor and runtime-dep refresh (gunicorn 26,
+argon2-cffi 25, markdown-it-py 4, mdit-py-plugins 0.6,
+markdownify 1.2) into the variant images. The theme's own
+surface is unchanged; the release picks up internal tooling
+maintenance (Poetry to uv migration, portfolio dev-dep refresh,
+`[tool.ruff] target-version` lifted to `py314`).
 
 v0.4.12 is an infrastructure PATCH: a new
 `bragi-released-rebuild.yml` workflow publishes the variant
@@ -282,13 +290,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.12
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.13
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.12
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.13
 # That's it. No further pip install step needed.
 ```
 
@@ -319,7 +327,7 @@ for development against an unreleased commit.
 #### Delivery container
 
 ```dockerfile
-FROM ghcr.io/sgaduuw/bragi-delivery:v1.30.0
+FROM ghcr.io/sgaduuw/bragi-delivery:v1.31.0
 
 # Install from PyPI (pin to a specific version).
 RUN pip install --no-cache-dir bragi-theme-zelda==0.4.12
@@ -332,7 +340,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.12
 #### Admin container
 
 ```dockerfile
-FROM ghcr.io/sgaduuw/bragi-admin:v1.30.0
+FROM ghcr.io/sgaduuw/bragi-admin:v1.31.0
 
 # Install from PyPI (pin to a specific version).
 RUN pip install --no-cache-dir bragi-theme-zelda==0.4.12
@@ -350,19 +358,19 @@ release; v0.1.0 is git-tag-only. v0.4.12 is the current release.
 ### Prerequisites
 
 - Python 3.14+
-- [Poetry](https://python-poetry.org/)
+- [uv](https://docs.astral.sh/uv/)
 
 ### Install
 
 ```sh
-poetry install
+uv sync
 ```
 
 ### Run against a bragi dev checkout (editable install)
 
 ```sh
 # From this project's directory, install into bragi's venv as an editable package:
-cd ../bragi && poetry run pip install -e ../bragi-theme-zelda
+( cd ../bragi && uv run pip install -e ../bragi-theme-zelda )
 
 # Then in bragi's working tree, point the Zelda site's theme to "zelda"
 # via the admin UI or CLI, and reload the delivery process to pick up template changes.
@@ -372,16 +380,16 @@ cd ../bragi && poetry run pip install -e ../bragi-theme-zelda
 
 ```sh
 # Run the test suite
-poetry run pytest
+uv run pytest
 
 # Lint
-poetry run ruff check src/ tests/
+uv run ruff check src/ tests/
 
 # Format-check
-poetry run ruff format --check src/ tests/
+uv run ruff format --check src/ tests/
 
 # Type-check
-poetry run mypy src/
+uv run mypy src/
 ```
 
 ## License
