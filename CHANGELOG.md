@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.14] - 2026-06-13
+
+### Changed
+
+- Bumps bragi base from v1.31.0 to v1.32.0 (PR #91, dispatched
+  by bragi's `notify-themes` job on bragi v1.32.0 release).
+  Carries bragi's datasets feature (per-site DuckDB-backed data
+  file registry, admin explore console, `::: dataset :::` markdown
+  directive) into the variant images. The theme's own surface is
+  unchanged; this is a base-image PATCH. See bragi CHANGELOG 1.32.0
+  for the full base-image change set.
+
 ## [0.4.13] - 2026-06-11
 
 ### Changed
