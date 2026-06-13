@@ -1,6 +1,6 @@
 [project]
 name = "bragi-theme-zelda"
-version = "0.4.14"
+version = "0.4.15"
 description = "Link's-Awakening-flavoured theme for the bragi CMS, used by zelda.eelcowesemann.nl"
 authors = [{name = "Eelco Wesemann", email = "6771014+sgaduuw@users.noreply.github.com"}]
 license = "MIT"
