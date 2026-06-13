@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.15] - 2026-06-13
+
+### Changed
+
+- Bumps bragi base from v1.32.0 to v1.33.0 (PR #94, dispatched
+  by bragi's `notify-themes` job on bragi v1.33.0 release).
+  Carries bragi's page-slug recompute feature (edit-form preview,
+  page-list inline, and bulk recompute of a page's slug from its
+  title, plus a full-URL-path column in the page list) into the
+  variant images. The theme's own surface is unchanged; this is a
+  base-image PATCH. See bragi CHANGELOG 1.33.0 for the full
+  base-image change set.
+
 ## [0.4.14] - 2026-06-13
 
 ### Changed
