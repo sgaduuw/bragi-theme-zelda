@@ -1,8 +1,11 @@
 name: CI
 
+# CI is the pull-request gate: lint + format + type-check + tests on
+# every PR. It runs on NO branch or tag push, so cutting a release no
+# longer double-tests (the release->main PR is the single gate; the
+# v* artifact path is release.yml on `release: published`, which trusts
+# this green PR and runs no tests). See portfolio "Tier C" CI shape.
 on:
-  push:
-    branches: [develop, main, "release/**", "hotfix/**"]
   pull_request:
     branches: [develop, main]
 

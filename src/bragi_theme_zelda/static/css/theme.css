@@ -98,6 +98,19 @@
   --gb-1: #306230;
   --gb-2: #8bac0f;
   --gb-3: #9bbc0f;
+  /* Accents must be re-declared here. The manual theme toggle (data-theme)
+   * is independent of prefers-color-scheme, but the accent tokens are only
+   * otherwise set on :root (light) and in the dark @media block. Without
+   * these, a visitor who force-selects la-green while their OS reports a
+   * dark color-scheme draws the dark link colour (#a8a8c8) on the green
+   * page (#9bbc0f) at ~1:1 contrast. Same self-contained discipline the
+   * palette + role tokens above already follow. */
+  --accent-link: #08400a;
+  --accent-tip-fg: #5a3a00;
+  --accent-tip-bg: #fff3b0;
+  --accent-tip-rule: #c8a02c;
+  --accent-warn: #a8201a;
+  --accent-info: #3a6ba5;
   --page-bg: var(--gb-3);
   --page-fg: var(--gb-0);
   --chrome-bg: var(--gb-1);
@@ -116,6 +129,15 @@
   --gb-1: #3a3a3a;
   --gb-2: #8a8a8a;
   --gb-3: #c0c0c0;
+  /* See the note in [data-theme="la-green"]: accents re-declared so a forced
+   * Pocket-greyscale page doesn't inherit the light link colour (#08400a)
+   * from :root when the OS reports a light color-scheme. */
+  --accent-link: #a8a8c8;
+  --accent-tip-fg: #e0c060;
+  --accent-tip-bg: #403820;
+  --accent-tip-rule: #e0c060;
+  --accent-warn: #d05050;
+  --accent-info: #7090c0;
   --page-bg: var(--gb-0);
   --page-fg: var(--gb-3);
   --chrome-bg: var(--gb-1);
@@ -127,6 +149,20 @@
   --inset-bg: var(--gb-1);
   --muted-fg: var(--gb-2);
   --rule-soft: var(--gb-2);
+}
+
+/* Manual theme + OoT section. The combined selector (specificity 0,2,0)
+ * outranks both the single-attribute manual-theme block and the
+ * prefers-color-scheme media query, so OoT pages keep their blue link
+ * differentiation even when a visitor has force-selected a manual theme.
+ * Mirrors the accents [data-section="oot"] sets in each color-scheme. */
+[data-theme="la-green"][data-section="oot"] {
+  --accent-link: #3d4f8a;
+  --accent-tip-bg: #f5ebbb;
+  --accent-tip-rule: #d4b340;
+}
+[data-theme="gb-pocket"][data-section="oot"] {
+  --accent-link: #b4c0e0;
 }
 
 /* ===== Font face declarations ===== */
