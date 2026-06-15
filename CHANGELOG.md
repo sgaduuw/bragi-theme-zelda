@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Manual theme toggle (`data-theme="la-green"` / `"gb-pocket"`) no
+  longer leaks a mismatched link/callout colour from the OS
+  `prefers-color-scheme`. Force-selecting the green theme under an OS
+  dark setting previously drew links in the dark-mode grey-purple
+  (`#a8a8c8`) on the green page (`#9bbc0f`) at ~1:1 contrast,
+  effectively invisible. Both manual-theme blocks now re-declare the
+  accent tokens; the OoT section keeps its blue link tint under a
+  forced theme via combined selectors.
+
 ## [0.4.15] - 2026-06-13
 
 ### Changed
