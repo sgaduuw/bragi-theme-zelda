@@ -27,7 +27,20 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.4.15
+## Status: v0.4.16
+
+v0.4.16 fixes a link-readability regression in the manual theme
+toggle: force-selecting the green (`la-green`) theme while the OS
+reported a dark color-scheme drew links in the dark-mode
+grey-purple (`#a8a8c8`) on the green page (`#9bbc0f`) at ~1:1
+contrast, effectively invisible. The two `[data-theme]` override
+blocks set the palette and role tokens but not the accents, so the
+accent colours leaked from `prefers-color-scheme`; both blocks now
+re-declare the accent set, and the OoT section keeps its blue link
+tint under a forced theme via combined selectors. Distinct from the
+v0.4.11 fix, which covered the default dark-mode palette mapping
+rather than the manual toggle. Also bumps the bragi base from
+v1.33.0 to v1.36.0 (PRs #97, #104).
 
 v0.4.15 bumps the bragi base from v1.32.0 to v1.33.0, carrying
 bragi's page-slug recompute (edit-form preview, page-list inline,
@@ -302,13 +315,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.15
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.16
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.15
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.16
 # That's it. No further pip install step needed.
 ```
 
@@ -363,7 +376,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.15
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.4.15 is the current release.
+release; v0.1.0 is git-tag-only. v0.4.16 is the current release.
 
 ## Development
 
