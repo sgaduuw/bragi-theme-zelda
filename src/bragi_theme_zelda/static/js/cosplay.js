@@ -105,7 +105,7 @@
     splash.setAttribute("aria-labelledby", "splash-title");
     splash.innerHTML =
       '<div class="push-start-splash__inner">' +
-      '<h2 id="splash-title" class="push-start-splash__brand">ZELDA.NL</h2>' +
+      '<h2 id="splash-title" class="push-start-splash__brand">ZELDA</h2>' +
       '<p class="push-start-splash__cta">PUSH START</p>' +
       '<button class="push-start-splash__skip" type="button">Skip</button>' +
       '</div>';
