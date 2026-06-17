@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.17] - 2026-06-18
+
+### Changed
+
+- PUSH START splash brand text changed from `ZELDA.NL` to `ZELDA`
+  (the `.nl` domain isn't owned).
+
 ## [0.4.16] - 2026-06-16
 
 ### Fixed
