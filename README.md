@@ -27,7 +27,11 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.4.16
+## Status: v0.4.17
+
+v0.4.17 changes the PUSH START splash brand heading from `ZELDA.NL`
+to plain `ZELDA` (the `.nl` domain isn't owned). Text-only change to
+the JS-rendered cold-load splash; no other surface affected.
 
 v0.4.16 fixes a link-readability regression in the manual theme
 toggle: force-selecting the green (`la-green`) theme while the OS
@@ -315,13 +319,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.16
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.17
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.16
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.17
 # That's it. No further pip install step needed.
 ```
 
@@ -376,7 +380,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.15
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.4.16 is the current release.
+release; v0.1.0 is git-tag-only. v0.4.17 is the current release.
 
 ## Development
 
