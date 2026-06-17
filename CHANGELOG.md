@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- A theme release now also refreshes the `:bragi-tracking` tag and
+  stamps the immutable `:vX.Y.Z-bragi-vA.B.C` combo tag on the variant
+  images, reusing the image `release.yml` already builds. Previously
+  these were written only by `bragi-released-rebuild.yml` on a bragi
+  dispatch, so a theme release left `:bragi-tracking` lagging until the
+  next bragi release. Operators on `:bragi-tracking` now pick up theme
+  releases automatically.
+
 ## [0.4.17] - 2026-06-18
 
 ### Changed

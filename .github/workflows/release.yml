@@ -81,6 +81,25 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
+      # Read the bragi base version this image is built against from the
+      # Dockerfile pin at the release tag, so the theme release can also
+      # refresh the :bragi-tracking convenience tag (and stamp the
+      # immutable :vX.Y.Z-bragi-vA.B.C combo) that bragi-released-rebuild.yml
+      # otherwise only writes on a bragi dispatch. At theme-release time the
+      # dispatcher PR has normally already landed the latest bragi pin, so
+      # this pin IS latest-bragi; if a theme release is cut before that PR
+      # merges, :bragi-tracking briefly reflects the older pin until the next
+      # bragi dispatch, same horizon as before this step existed.
+      - name: Resolve bragi base version from Dockerfile pin
+        id: bragipin
+        run: |
+          VERSION="$(sed -n 's/^ARG BRAGI_VERSION=//p' "docker/${{ matrix.image }}.Dockerfile" | head -n1)"
+          if [ -z "${VERSION}" ]; then
+            echo "Could not read ARG BRAGI_VERSION from docker/${{ matrix.image }}.Dockerfile" >&2
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
       # PyPI's JSON metadata endpoint serves 200 well before `pip
       # install` can resolve the wheel from every CDN node; the old
       # curl-against-JSON probe surfaced "reachable" while the
@@ -139,6 +158,8 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
+            type=raw,value=bragi-tracking
+            type=raw,value=v${{ steps.version.outputs.version }}-bragi-v${{ steps.bragipin.outputs.version }}
 
       - name: Build and push
         uses: docker/build-push-action@v7
