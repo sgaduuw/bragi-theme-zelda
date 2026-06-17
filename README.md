@@ -339,13 +339,14 @@ Three tag shapes are published on the variant images:
   that release. The right pin for operators who want their tag honest to source releases
   only.
 - `:bragi-tracking` is mutable: always points at "most-recent theme release rebuilt against
-  most-recent bragi release". Rebuilt on every `bragi-released` dispatch, no theme release
-  required. `docker pull` picks up the refresh. Right pin for operators who want bragi
-  releases to flow through automatically.
+  most-recent bragi release". Refreshed on every `bragi-released` dispatch (no theme release
+  required) and on every theme release (which advances the "most-recent theme" side against
+  its pinned bragi base). `docker pull` picks up the refresh. Right pin for operators who
+  want both theme and bragi releases to flow through automatically.
 - `:vX.Y.Z-bragi-vA.B.C` (e.g. `:v0.4.12-bragi-v1.30.0`) is immutable: one tag per
-  (theme, bragi) combination, published whenever the rebuild workflow fires. Right pin
-  when you want a specific combo retroactively, or want to roll back without re-pinning
-  the theme version.
+  (theme, bragi) combination, published whenever the rebuild workflow fires or a theme
+  release is cut. Right pin when you want a specific combo retroactively, or want to roll
+  back without re-pinning the theme version.
 
 ### Fallback: downstream Dockerfile from PyPI
 
