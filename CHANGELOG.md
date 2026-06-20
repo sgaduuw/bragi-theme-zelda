@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.18] - 2026-06-20
+
 ### Fixed
 
 - Prose links no longer read as ordinary underlined body text. On the GB
