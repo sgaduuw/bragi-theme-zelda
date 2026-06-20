@@ -104,6 +104,15 @@ def test_breadcrumbs_hidden_on_section_root_page(client) -> None:
     assert b'class="breadcrumbs"' not in resp.data
 
 
+def test_content_wrapped_in_zelda_prose(client) -> None:
+    """The content block renders inside .zelda-prose so the prose-link
+    affordance (weight + underline + states) is scoped to body links and
+    not the MAP nav / breadcrumb / footer chrome."""
+    resp = client.get("/links-awakening/", headers={"Host": "zelda.test"})
+    assert resp.status_code == 200
+    assert b'<div class="zelda-prose">' in resp.data
+
+
 def test_pause_menu_home_renders(client) -> None:
     resp = client.get("/", headers={"Host": "zelda.test"})
     assert resp.status_code == 200
