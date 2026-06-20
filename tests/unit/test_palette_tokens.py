@@ -49,7 +49,7 @@ LA_LIGHT_TOKENS = {
     "--gb-1": "#306230",
     "--gb-2": "#8bac0f",
     "--gb-3": "#9bbc0f",
-    "--accent-link": "#08400a",
+    "--accent-link": "#0a4a0c",
     "--accent-warn": "#a8201a",
     "--accent-info": "#3a6ba5",
 }
@@ -98,7 +98,7 @@ def test_manual_theme_override_selectors_exist(css: str) -> None:
 # an OS dark color-scheme drew the dark link colour (#a8a8c8) on the green
 # page (#9bbc0f) at ~1:1 contrast (the 2026-06-15 readability fix).
 LA_GREEN_MANUAL_ACCENTS = {
-    "--accent-link": "#08400a",
+    "--accent-link": "#0a4a0c",
     "--accent-warn": "#a8201a",
     "--accent-info": "#3a6ba5",
 }
@@ -119,6 +119,20 @@ def test_manual_gb_pocket_redeclares_dark_accents(css: str) -> None:
     block = _extract_block(css, '[data-theme="gb-pocket"]')
     for token, value in GB_POCKET_MANUAL_ACCENTS.items():
         assert _extract_token(block, token) == value, f"{token} drift"
+
+
+def test_prose_links_carry_non_colour_affordance(css: str) -> None:
+    """On the GB palette a link can't get a strong colour gap from body text
+    and still clear AA against the page, so prose links must read as links via
+    weight + a clear underline (colour-axis-independent). Guards the fix that
+    stopped links from looking like ordinary underlined text."""
+    block = _extract_block(css, ".zelda-prose a")
+    assert "font-weight: 600" in block
+    assert "text-decoration: underline" in block
+    assert "text-decoration-thickness: 2px" in block
+    # The interaction states exist (hover feedback + keyboard focus ring).
+    assert ".zelda-prose a:hover" in css
+    assert ".zelda-prose a:focus-visible" in css
 
 
 def test_manual_theme_preserves_oot_link_tint(css: str) -> None:
