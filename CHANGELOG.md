@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Prose links no longer read as ordinary underlined body text. On the GB
+  palette a link dark enough to clear WCAG AA against the page necessarily
+  sits on the near-black body-text colour (link-vs-text contrast was
+  ~1.0-1.3:1 in every mode), so links were distinguishable only by a thin
+  underline and had no `:hover`/`:focus` feedback. Body links inside the
+  new `.zelda-prose` content wrapper now carry a colour-axis-independent
+  affordance: `font-weight: 600`, a 2px underline, a hover brighten, and a
+  keyboard `:focus-visible` ring. The Light/LA link green is also nudged
+  from `#08400a` to `#0a4a0c` (still AA against the page, slightly more
+  distinct from the text). The MAP nav, breadcrumbs, and pause-menu chrome
+  are unaffected.
+
 ### Changed
 
 - A theme release now also refreshes the `:bragi-tracking` tag and

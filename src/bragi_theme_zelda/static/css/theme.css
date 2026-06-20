@@ -12,7 +12,7 @@
   --gb-1: #306230;
   --gb-2: #8bac0f;
   --gb-3: #9bbc0f;
-  --accent-link: #08400a;
+  --accent-link: #0a4a0c;
   --accent-tip-fg: #5a3a00;
   --accent-tip-bg: #fff3b0;
   --accent-tip-rule: #c8a02c;
@@ -105,7 +105,7 @@
    * dark color-scheme draws the dark link colour (#a8a8c8) on the green
    * page (#9bbc0f) at ~1:1 contrast. Same self-contained discipline the
    * palette + role tokens above already follow. */
-  --accent-link: #08400a;
+  --accent-link: #0a4a0c;
   --accent-tip-fg: #5a3a00;
   --accent-tip-bg: #fff3b0;
   --accent-tip-rule: #c8a02c;
@@ -213,6 +213,41 @@ h1 { font-size: 1.25rem; }
 h2 { font-size: 1.05rem; }
 h3 { font-size: 0.85rem; }
 a { color: var(--accent-link); text-underline-offset: 3px; }
+
+/* Prose links. On the GB palette a link dark enough to clear AA against
+ * the page sits right on the near-black body-text colour (link-vs-text
+ * caps at ~1.3:1 in light, ~1.0:1 in dark), so colour alone never reads
+ * as "this is a link". The affordance is carried by weight + a clear
+ * underline + interaction states, which work identically on every colour
+ * axis (light/dark x LA/OoT x manual theme) and need no per-axis tokens,
+ * so this can't reintroduce the v0.4.16 accent-leak class. Scoped to
+ * .zelda-prose (the content block in base.html) so the MAP nav,
+ * breadcrumbs, and footer chrome are untouched. */
+.zelda-prose a {
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.zelda-prose a:hover {
+  filter: brightness(1.2);
+  text-decoration-thickness: 3px;
+}
+/* Keyboard affordance: a visible focus ring (no :hover-only feedback). */
+.zelda-prose a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+/* Component links that happen to live inside the prose container are not
+ * body links (they signal via their own box/colour, not bold): keep them
+ * at normal weight. The pause-menu tiles and footnote-ref markers set
+ * their own text-decoration already; only the inherited weight needs
+ * resetting. */
+.zelda-prose .pause-menu__tile a,
+.zelda-prose sup.footnote-ref a {
+  font-weight: 400;
+}
 
 /* ===== Layout chrome ===== */
 

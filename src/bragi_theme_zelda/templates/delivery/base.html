@@ -45,7 +45,7 @@
     </aside>
     <main>
       {% block breadcrumbs %}{% include "delivery/_breadcrumbs.html" %}{% endblock %}
-      {% block content %}{% endblock %}
+      <div class="zelda-prose">{% block content %}{% endblock %}</div>
     </main>
   </div>
   {% if site %}
