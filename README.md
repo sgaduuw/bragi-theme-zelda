@@ -27,7 +27,17 @@ not intended as a general-purpose Zelda theme.
 - **`prefers-reduced-motion` respected:** Any animation that moves (ZZZZZ float, item-
   acquired scroll, PUSH START blink) switches to a static render.
 
-## Status: v0.4.17
+## Status: v0.4.18
+
+v0.4.18 fixes prose links reading as ordinary underlined body text. On
+the GB palette a link dark enough to clear WCAG AA against the page sits
+on the near-black body-text colour, so links had almost no colour
+distinction and no hover/focus feedback. Body links now carry a
+colour-axis-independent affordance (bold + a clear underline + hover and
+keyboard-focus states) scoped to the content area, leaving the MAP nav
+and chrome untouched. Also: a theme release now refreshes the
+`:bragi-tracking` variant-image tag itself instead of waiting for the
+next bragi release.
 
 v0.4.17 changes the PUSH START splash brand heading from `ZELDA.NL`
 to plain `ZELDA` (the `.nl` domain isn't owned). Text-only change to
@@ -319,13 +329,13 @@ directly instead of writing a downstream Dockerfile:
 
 ```dockerfile
 # Delivery container — bragi-delivery + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.17
+FROM ghcr.io/sgaduuw/bragi-delivery-zelda:v0.4.18
 # That's it. No further pip install step needed.
 ```
 
 ```dockerfile
 # Admin container — bragi-admin + bragi-theme-zelda preinstalled.
-FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.17
+FROM ghcr.io/sgaduuw/bragi-admin-zelda:v0.4.18
 # That's it. No further pip install step needed.
 ```
 
@@ -381,7 +391,7 @@ RUN pip install --no-cache-dir bragi-theme-zelda==0.4.15
 ```
 
 Replace the version pin with the version to deploy. v0.1.1 is the first PyPI-published
-release; v0.1.0 is git-tag-only. v0.4.17 is the current release.
+release; v0.1.0 is git-tag-only. v0.4.18 is the current release.
 
 ## Development
 
